@@ -1,3 +1,4 @@
+/* eslint-disable */
 import test from 'ava';
 import puppeteerHelper from './_puppeteer';
 import './_pock';
