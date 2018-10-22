@@ -9,10 +9,10 @@ let browser = null;
 // 会实例化多次, 目前没看到有什么好的解决方案
 // 只能所有测试代码写在一个文件里了
 test.before(async () => {
-	// browser = await puppeteer.launch();
-	browser = await puppeteer.launch({
-		headless: false
-	});
+	browser = await puppeteer.launch();
+	// browser = await puppeteer.launch({
+	// 	headless: false
+	// });
 });
 
 test.after(async () => {
