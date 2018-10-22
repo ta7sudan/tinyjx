@@ -87,6 +87,7 @@
 
     try {
       xhr.timeout = 0;
+      xhr.requestURL = '';
       /* eslint-disable-next-line */
     } catch (e) {}
 
@@ -214,11 +215,11 @@
             errOccured = true;
 
             if (!hasErrorCb && !hasCompleteCb) {
-              throw new Error("Remote server error. Status code: " + this.status + ", message: " + this.statusText + ".");
+              throw new Error("Remote server error. Request URL: " + this.requestURL + ", Status code: " + this.status + ", message: " + this.statusText + ".");
             } // 异常不管直接抛
 
 
-            hasErrorCb && error(new Error("Remote server error. Status code: " + this.status + ", message: " + this.statusText + "."), xhr, e);
+            hasErrorCb && error(new Error("Remote server error. Request URL: " + this.requestURL + ", Status code: " + this.status + ", message: " + this.statusText + "."), xhr, e);
             hasCompleteCb && complete(xhr, 'error');
           }
         }
@@ -240,7 +241,8 @@
       }
 
       if (!errOccured) {
-        var resCtype = xhr.getResponseHeader('Content-Type');
+        var resCtype = xhr.getResponseHeader('Content-Type'); // 这里也不捕获, 因为最外面已经捕获了
+
         resData = dslz({
           data: xhr.responseXML || xhr.response || xhr.responseText,
           contentType: resCtype,
@@ -328,8 +330,7 @@
             originalCb.apply(void 0, arguments);
           } else if (hasSuccessCb) {
             success.apply(void 0, arguments);
-          } // hasSuccessCb && success(...args);
-
+          }
 
           hasCompleteCb && complete('success');
           hasOriginalCb && (window[callbackName] = originalCb);
@@ -434,7 +435,7 @@
         hasSuccessCb = isFn(success);
     var reqData,
         errCalled = false,
-        completeCalled = false;
+        completeCalled = false; // 这里不用捕获异常去重置xhr是因为xhr还没激活
 
     var _slz = slz({
       data: reqRawData,
@@ -448,7 +449,8 @@
     reqData = _slz.data;
     // 初始化xhr
     xhr._active = true;
-    xhr.open(method, url, true, username, password); // 设置必要的头部
+    xhr.open(method, url, true, username, password);
+    !xhr.requestURL && (xhr.requestURL = url); // 设置必要的头部
 
     if (reqCtype) {
       xhr.setRequestHeader('Content-Type', reqCtype);
@@ -473,11 +475,18 @@
     timeout && (xhr.timeout = timeout);
 
     if (isFn(ontimeout)) {
-      xhr.ontimeout = ontimeout.bind(null);
+      xhr.ontimeout = function (e) {
+        ontimeout(e);
+        hasCompleteCb && complete(this, 'timeout');
+      };
     } else if (timeout && !isFn(xhr.ontimeout)) {
       xhr.ontimeout = function () {
-        // 如果没监听ontimeout但是设置了timeout, window.onerror不会捕获这个错误, 所以手动抛个
-        throw new Error("Request " + url + " timeout.");
+        if (hasCompleteCb) {
+          complete(this, 'timeout');
+        } else {
+          // 如果没监听ontimeout但是设置了timeout, window.onerror不会捕获这个错误, 所以手动抛个
+          throw new Error("Request " + this.requestURL + " timeout.");
+        }
       };
     } // loadend无论同步还是异步请求, 无论前面的事件是否抛异常, 它都会执行
 
@@ -499,7 +508,8 @@
     xhr.onreadystatechange = function (e) {
       if (this.readyState === 4) {
         if (this.status >= 200 && this.status < 300 || this.status == 304 || this.status == 0 && protocol == 'file:') {
-          var resCtype = this.getResponseHeader('Content-Type');
+          var resCtype = this.getResponseHeader('Content-Type'); // 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
+
           var resData = dslz({
             data: this.responseXML || this.response || this.responseText,
             contentType: resCtype,
@@ -511,7 +521,7 @@
         } else if (this.status !== 0) {
           // 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
           if (!hasErrorCb && !hasCompleteCb) {
-            throw new Error("Remote server error. Status code: " + this.status + ", message: " + this.statusText + ".");
+            throw new Error("Remote server error. Request URL: " + this.requestURL + ", Status code: " + this.status + ", message: " + this.statusText + ".");
           } // 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
           // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/status
           // 但是不加个心里不踏实...总感觉会不会有浏览器没按规范实现
@@ -521,7 +531,7 @@
 
           if (hasErrorCb) {
             errCalled = true;
-            error(new Error("Remote server error. Status code " + this.status), this, e);
+            error(new Error("Remote server error. Request URL: " + this.requestURL + ", Status code " + this.status), this, e);
           }
 
           if (hasCompleteCb) {
@@ -536,11 +546,11 @@
     xhr.onerror = function (e) {
       // 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
       if (!hasErrorCb && !hasCompleteCb) {
-        throw new Error("An error occured, maybe crossorigin error. Status code: " + this.status + ".");
+        throw new Error("An error occured, maybe crossorigin error. Request URL: " + this.requestURL + ", Status code: " + this.status + ".");
       }
 
       if (!errCalled && hasErrorCb) {
-        error(new Error('Network error or browser restricted.'), this, e);
+        error(new Error("Network error or browser restricted. Request URL: " + this.requestURL + ", Status code: " + this.status), this, e);
       }
 
       if (!completeCalled && hasCompleteCb) {
@@ -551,8 +561,21 @@
 
     if (isFn(beforeSend)) {
       setTimeout(function () {
-        var rst = beforeSend(xhr, options);
-        rst !== false && xhr.send(reqData || null);
+        var rst;
+
+        try {
+          rst = beforeSend(xhr, options);
+        } catch (e) {
+          // 恶心之处就在于每个用户定义的callback都可能触发异常, 然而我还要回收xhr
+          resetXhr(xhr);
+          throw e;
+        }
+
+        if (rst !== false) {
+          xhr.send(reqData || null);
+        } else {
+          resetXhr(xhr);
+        }
       });
     } else {
       xhr.send(reqData || null);
@@ -623,7 +646,8 @@
     reqData = _slz2.data;
     // 初始化xhr
     xhr._active = true;
-    xhr.open(method, url, false, username, password); // 设置必要的头部
+    xhr.open(method, url, false, username, password);
+    !xhr.requestURL && (xhr.requestURL = url); // 设置必要的头部
 
     if (reqCtype) {
       xhr.setRequestHeader('Content-Type', reqCtype);
@@ -645,16 +669,28 @@
     setEvents(xhr.upload, uploadEvents);
 
     if (isFn(beforeSend)) {
-      var rst = beforeSend(xhr, options);
-      return rst !== false && isolateTryCatch({
-        xhr: xhr,
-        reqData: reqData,
-        acceptType: acceptType,
-        dslz: dslz,
-        success: success,
-        error: error,
-        complete: complete
-      });
+      var rst;
+
+      try {
+        rst = beforeSend(xhr, options);
+      } catch (e) {
+        resetXhr(xhr);
+        throw e;
+      }
+
+      if (rst !== false) {
+        return isolateTryCatch({
+          xhr: xhr,
+          reqData: reqData,
+          acceptType: acceptType,
+          dslz: dslz,
+          success: success,
+          error: error,
+          complete: complete
+        });
+      } else {
+        resetXhr(xhr);
+      }
     } else {
       return isolateTryCatch({
         xhr: xhr,

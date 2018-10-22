@@ -1,4 +1,7 @@
 module.exports = {
+	'post /ajaxdelay 3000': {
+		data: 'post'
+	},
 	'get /ajax': {
 		data: 'get'
 	},

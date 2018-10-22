@@ -61,8 +61,9 @@ function resetXhr(xhr) {
 	// 可能是同步请求那就不能设置timeout
 	try {
 		xhr.timeout = 0;
+		xhr.requestURL = '';
 		/* eslint-disable-next-line */
-	} catch (e) {}
+	} catch (e) { }
 	events.forEach(v => (xhr[v] = null));
 	xhr.upload && events.forEach(v => (xhr.upload[v] = null));
 }
@@ -93,7 +94,7 @@ function querystring(obj) {
 	}
 }
 
-function defaultSerialize({data, method, contentType = MIME.json, url, cache}) {
+function defaultSerialize({ data, method, contentType = MIME.json, url, cache }) {
 	if (!cache) {
 		url += ~url.indexOf('?') ? `&_=${++cacheRand}` : `?_=${++cacheRand}`;
 	}
@@ -134,7 +135,7 @@ function defaultSerialize({data, method, contentType = MIME.json, url, cache}) {
 	};
 }
 
-function defaultDeserialize({data, contentType, acceptType}) {
+function defaultDeserialize({ data, contentType, acceptType }) {
 	let rst = null;
 	if (isStr(data) && (isJSON(contentType) || isJSON(acceptType))) {
 		try {
@@ -153,7 +154,7 @@ function setHeaders(xhr, headers) {
 	}
 }
 
-function isolateTryCatch({xhr, reqData, acceptType, dslz, success, error, complete}) {
+function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, complete }) {
 	// 这一坨有点恶心...考虑下怎么优化
 	// 这里是为了捕获callback的异常, 以便最终可以reset
 	try {
@@ -173,11 +174,11 @@ function isolateTryCatch({xhr, reqData, acceptType, dslz, success, error, comple
 					errOccured = true;
 					if (!hasErrorCb && !hasCompleteCb) {
 						throw new Error(
-							`Remote server error. Status code: ${this.status}, message: ${this.statusText}.`
+							`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`
 						);
 					}
 					// 异常不管直接抛
-					hasErrorCb && error(new Error(`Remote server error. Status code: ${this.status}, message: ${this.statusText}.`), xhr, e);
+					hasErrorCb && error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`), xhr, e);
 					hasCompleteCb && complete(xhr, 'error');
 				}
 			}
@@ -197,6 +198,7 @@ function isolateTryCatch({xhr, reqData, acceptType, dslz, success, error, comple
 		}
 		if (!errOccured) {
 			const resCtype = xhr.getResponseHeader('Content-Type');
+			// 这里也不捕获, 因为最外面已经捕获了
 			resData = dslz({
 				data: xhr.responseXML || xhr.response || xhr.responseText,
 				contentType: resCtype,
@@ -280,7 +282,6 @@ function jsonp(options) {
 				} else if (hasSuccessCb) {
 					success(...args);
 				}
-				// hasSuccessCb && success(...args);
 				hasCompleteCb && complete('success');
 				hasOriginalCb && (window[callbackName] = originalCb);
 			} catch (e) {
@@ -384,11 +385,13 @@ function ajax(options) {
 	let reqData,
 		errCalled = false,
 		completeCalled = false;
-	({url, data: reqData} = slz({data: reqRawData, method, contentType: reqCtype, url, cache}));
+	// 这里不用捕获异常去重置xhr是因为xhr还没激活
+	({ url, data: reqData } = slz({ data: reqRawData, method, contentType: reqCtype, url, cache }));
 
 	// 初始化xhr
 	xhr._active = true;
 	xhr.open(method, url, true, username, password);
+	!xhr.requestURL && (xhr.requestURL = url);
 
 	// 设置必要的头部
 	if (reqCtype) {
@@ -414,11 +417,18 @@ function ajax(options) {
 	responseType && (xhr.responseType = responseType);
 	timeout && (xhr.timeout = timeout);
 	if (isFn(ontimeout)) {
-		xhr.ontimeout = ontimeout.bind(null);
+		xhr.ontimeout = function (e) {
+			ontimeout(e);
+			hasCompleteCb && complete(this, 'timeout');
+		};
 	} else if (timeout && !isFn(xhr.ontimeout)) {
 		xhr.ontimeout = function () {
-			// 如果没监听ontimeout但是设置了timeout, window.onerror不会捕获这个错误, 所以手动抛个
-			throw new Error(`Request ${url} timeout.`);
+			if (hasCompleteCb) {
+				complete(this, 'timeout');
+			} else {
+				// 如果没监听ontimeout但是设置了timeout, window.onerror不会捕获这个错误, 所以手动抛个
+				throw new Error(`Request ${this.requestURL} timeout.`);
+			}
 		};
 	}
 
@@ -443,6 +453,7 @@ function ajax(options) {
 				(this.status == 0 && protocol == 'file:')
 			) {
 				const resCtype = this.getResponseHeader('Content-Type');
+				// 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
 				const resData = dslz({
 					data: this.responseXML || this.response || this.responseText,
 					contentType: resCtype,
@@ -455,7 +466,7 @@ function ajax(options) {
 				// 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
 				if (!hasErrorCb && !hasCompleteCb) {
 					throw new Error(
-						`Remote server error. Status code: ${this.status}, message: ${this.statusText}.`
+						`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`
 					);
 				}
 				// 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
@@ -465,7 +476,7 @@ function ajax(options) {
 				// 但是我要加!!!
 				if (hasErrorCb) {
 					errCalled = true;
-					error(new Error(`Remote server error. Status code ${this.status}`), this, e);
+					error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code ${this.status}`), this, e);
 				}
 				if (hasCompleteCb) {
 					completeCalled = true;
@@ -479,10 +490,10 @@ function ajax(options) {
 	xhr.onerror = function (e) {
 		// 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
 		if (!hasErrorCb && !hasCompleteCb) {
-			throw new Error(`An error occured, maybe crossorigin error. Status code: ${this.status}.`);
+			throw new Error(`An error occured, maybe crossorigin error. Request URL: ${this.requestURL}, Status code: ${this.status}.`);
 		}
 		if (!errCalled && hasErrorCb) {
-			error(new Error('Network error or browser restricted.'), this, e);
+			error(new Error(`Network error or browser restricted. Request URL: ${this.requestURL}, Status code: ${this.status}`), this, e);
 		}
 		if (!completeCalled && hasCompleteCb) {
 			complete(this, 'error');
@@ -492,8 +503,19 @@ function ajax(options) {
 	// 哎...都异步吧
 	if (isFn(beforeSend)) {
 		setTimeout(() => {
-			const rst = beforeSend(xhr, options);
-			rst !== false && xhr.send(reqData || null);
+			let rst;
+			try {
+				rst = beforeSend(xhr, options);
+			} catch (e) {
+				// 恶心之处就在于每个用户定义的callback都可能触发异常, 然而我还要回收xhr
+				resetXhr(xhr);
+				throw e;
+			}
+			if (rst !== false) {
+				xhr.send(reqData || null);
+			} else {
+				resetXhr(xhr);
+			}
 		});
 	} else {
 		xhr.send(reqData || null);
@@ -560,11 +582,12 @@ function ajaxSync(options) {
 		xhr = xhrFactory();
 
 	let reqData;
-	({url, data: reqData} = slz({data: reqRawData, method, contentType: reqCtype, url, cache}));
+	({ url, data: reqData } = slz({ data: reqRawData, method, contentType: reqCtype, url, cache }));
 
 	// 初始化xhr
 	xhr._active = true;
 	xhr.open(method, url, false, username, password);
+	!xhr.requestURL && (xhr.requestURL = url);
 
 	// 设置必要的头部
 	if (reqCtype) {
@@ -587,16 +610,24 @@ function ajaxSync(options) {
 	setEvents(xhr.upload, uploadEvents);
 
 	if (isFn(beforeSend)) {
-		const rst = beforeSend(xhr, options);
-		return (
-			rst !== false && isolateTryCatch({xhr, reqData, acceptType, dslz, success, error, complete})
-		);
+		let rst;
+		try {
+			rst = beforeSend(xhr, options);
+		} catch (e) {
+			resetXhr(xhr);
+			throw e;
+		}
+		if (rst !== false) {
+			return isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, complete });
+		} else {
+			resetXhr(xhr);
+		}
 	} else {
-		return isolateTryCatch({xhr, reqData, acceptType, dslz, success, error, complete});
+		return isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, complete });
 	}
 }
 
-export function config({pool = false, serialize, deserialize} = {}) {
+export function config({ pool = false, serialize, deserialize } = {}) {
 	if (pool) {
 		xhrPool.length = 0;
 		let poolSize = typeof pool === 'number' ? pool : 5;
@@ -611,7 +642,7 @@ export function config({pool = false, serialize, deserialize} = {}) {
 	isFn(deserialize) && (globalDeserialize = deserialize);
 }
 
-export {ajax, ajaxSync, jsonp};
+export { ajax, ajaxSync, jsonp };
 
 export function get(url, options) {
 	return ajax({
