@@ -3,6 +3,11 @@ import puppeteer from 'puppeteer';
 
 let browser = null;
 
+// 其实这里不应该用before和after这样的框架API的,
+// 因为AVA的测试代码引入模块不知道为什么, 会导致多次
+// 引入模块多次执行, 而不是缓存, 这样的话browser还是
+// 会实例化多次, 目前没看到有什么好的解决方案
+// 只能所有测试代码写在一个文件里了
 test.before(async () => {
 	browser = await puppeteer.launch();
 	// browser = await puppeteer.launch({
