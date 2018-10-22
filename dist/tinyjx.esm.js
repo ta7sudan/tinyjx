@@ -22,6 +22,7 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
+/* global false */
 var isFn = function isFn(fn) {
   return typeof fn === 'function';
 };
@@ -54,7 +55,6 @@ var xhrPool = [],
     events = ['onloadstart', 'onprogress', 'onabort', 'onerror', 'onload', 'ontimeout', 'onloadend', 'onreadystatechange'];
 var jsonpId = Date.now(),
     cacheRand = Date.now() + 5,
-    xhrId = 0,
     globalSerialize = null,
     globalDeserialize = null;
 
@@ -65,11 +65,7 @@ function createXhr() {
     writable: true,
     enumerable: false
   });
-  Object.defineProperty(xhr, '_id', {
-    value: ++xhrId,
-    writable: true,
-    enumerable: false
-  });
+
   return xhr;
 }
 

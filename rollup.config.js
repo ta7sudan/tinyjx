@@ -1,5 +1,6 @@
-import { uglify } from 'rollup-plugin-uglify';
 import babel from 'rollup-plugin-babel';
+import replace from 'rollup-plugin-replace';
+import { uglify } from 'rollup-plugin-uglify';
 import { browser, module, name, version, license, author, homepage } from './package.json';
 
 /**
@@ -18,6 +19,9 @@ export default [
 	{
 		input: 'src/index.js',
 		plugins: [
+			replace({
+				DEBUG: JSON.stringify(false)
+			}),
 			babel({
 				exclude: 'node_modules/**'
 			})
@@ -44,6 +48,9 @@ export default [
 	{
 		input: 'src/index.js',
 		plugins: [
+			replace({
+				DEBUG: JSON.stringify(false)
+			}),
 			babel({
 				exclude: 'node_modules/**'
 			}),

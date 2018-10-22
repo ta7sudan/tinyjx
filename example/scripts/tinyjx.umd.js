@@ -22,6 +22,7 @@
     return _extends.apply(this, arguments);
   }
 
+  /* global true */
   var isFn = function isFn(fn) {
     return typeof fn === 'function';
   };
@@ -54,9 +55,12 @@
       events = ['onloadstart', 'onprogress', 'onabort', 'onerror', 'onload', 'ontimeout', 'onloadend', 'onreadystatechange'];
   var jsonpId = Date.now(),
       cacheRand = Date.now() + 5,
-      xhrId = 0,
       globalSerialize = null,
       globalDeserialize = null;
+
+  {
+    var xhrId = 0;
+  }
 
   function createXhr() {
     var xhr = new XMLHttpRequest();
@@ -65,11 +69,15 @@
       writable: true,
       enumerable: false
     });
-    Object.defineProperty(xhr, '_id', {
-      value: ++xhrId,
-      writable: true,
-      enumerable: false
-    });
+
+    {
+      Object.defineProperty(xhr, '_id', {
+        value: ++xhrId,
+        writable: true,
+        enumerable: false
+      });
+    }
+
     return xhr;
   }
 

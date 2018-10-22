@@ -1,3 +1,4 @@
+/* global DEBUG */
 const isFn = fn => typeof fn === 'function';
 
 const isJSON = cType => /application\/json/i.test(cType);
@@ -30,9 +31,12 @@ const xhrPool = [],
 
 let jsonpId = Date.now(),
 	cacheRand = Date.now() + 5,
-	xhrId = 0,
 	globalSerialize = null,
 	globalDeserialize = null;
+
+if (DEBUG) {
+	var xhrId = 0;
+}
 
 function createXhr() {
 	const xhr = new XMLHttpRequest();
@@ -41,11 +45,13 @@ function createXhr() {
 		writable: true,
 		enumerable: false
 	});
-	Object.defineProperty(xhr, '_id', {
-		value: ++xhrId,
-		writable: true,
-		enumerable: false
-	});
+	if (DEBUG) {
+		Object.defineProperty(xhr, '_id', {
+			value: ++xhrId,
+			writable: true,
+			enumerable: false
+		});
+	}
 	return xhr;
 }
 
