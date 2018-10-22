@@ -208,7 +208,7 @@ test('jsonp url with beforeSend return false', puppeteerHelper, async (t, page) 
 			}
 		});
 	});
-	await sleep(2000);
+	await sleep(3000);
 });
 
 test('jsonp with script load error unhandled', puppeteerHelper, async (t, page) => {
@@ -225,7 +225,7 @@ test('jsonp with script load error unhandled', puppeteerHelper, async (t, page) 
 			}
 		});
 	});
-	await sleep(2000);
+	await sleep(3000);
 });
 
 test('jsonp with script load error handled', puppeteerHelper, async (t, page) => {
@@ -630,7 +630,7 @@ test('ajax with error unhandled', puppeteerHelper, async (t, page) => {
 			url: 'http://127.0.0.1:8080/ajaxerr'
 		});
 	});
-	await sleep(2000);
+	await sleep(3000);
 });
 
 test('ajax with error handled', puppeteerHelper, async (t, page) => {
