@@ -11,6 +11,7 @@
   "scripts": {
     "build": "rollup -c",
     "prebuild": "rimraf dist",
+    "build-dev": "rollup -c rollup.dev.js",
     "start": "concurrently \"rollup -w -c rollup.dev.js\" \"pock -s example\" \"pock\" \"opn http://127.0.0.1:3000/jsonp.html\"",
     "lint": "eslint src test",
     "format": "prettier --config .prettierrc.js --write src/**/*.js test/**/*.js",
@@ -47,7 +48,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
+      "pre-commit": ["lint-staged", "npm run build", "git add ."],
       "pre-push": "npm test"
     }
   },
