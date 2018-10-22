@@ -24,7 +24,6 @@ test('jsonp empty args', puppeteerHelper, async (t, page) => {
 	await t.throwsAsync(result, /Must set a success callback or complete callback./);
 });
 
-
 test('jsonp without url', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
 	const result = page.evaluate(() => {
@@ -39,68 +38,80 @@ test('jsonp without url', puppeteerHelper, async (t, page) => {
 
 test('jsonp only success', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp',
-			success(data) {
-				rs(data);
-			}
-		});
-	}));
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsonp',
+					success(data) {
+						rs(data);
+					}
+				});
+			})
+	);
 	t.deepEqual(result, {
 		hello: 'world'
 	});
 });
-
 
 test('jsonp url with placeholder', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp?aaa=1&callback=?&bbb=2',
-			success(data) {
-				rs(data);
-			}
-		});
-	}));
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsonp?aaa=1&callback=?&bbb=2',
+					success(data) {
+						rs(data);
+					}
+				});
+			})
+	);
 	t.deepEqual(result, {
 		hello: 'world'
 	});
 });
-
 
 test('jsonp url with query', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp?aaa=1',
-			success(data) {
-				rs(data);
-			}
-		});
-	}));
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsonp?aaa=1',
+					success(data) {
+						rs(data);
+					}
+				});
+			})
+	);
 	t.deepEqual(result, {
 		hello: 'world'
 	});
 });
 
-
-test('jsonp with custom callbackName and url with placeholder', puppeteerHelper, async (t, page) => {
-	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		window['测试'] = function (data) {
-			rs(data);
-		};
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp?aaa=1&callback=?&bbb=2',
-			callbackName: '测试'
+test(
+	'jsonp with custom callbackName and url with placeholder',
+	puppeteerHelper,
+	async (t, page) => {
+		await page.goto('http://127.0.0.1:3000/test.html');
+		const result = await page.evaluate(
+			() =>
+				new Promise(rs => {
+					window['测试'] = function (data) {
+						rs(data);
+					};
+					tinyjx.jsonp({
+						url: 'http://127.0.0.1:8080/jsonp?aaa=1&callback=?&bbb=2',
+						callbackName: '测试'
+					});
+				})
+		);
+		t.deepEqual(result, {
+			hello: 'world'
 		});
-	}));
-	t.deepEqual(result, {
-		hello: 'world'
-	});
-});
-
+	}
+);
 
 test('jsonp with cache', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
@@ -124,11 +135,9 @@ test('jsonp with cache', puppeteerHelper, async (t, page) => {
 				callbackName: 'test'
 			});
 		});
-
 	});
 	t.is(result[0], result[1]);
 });
-
 
 test('jsonp without cache', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
@@ -150,37 +159,36 @@ test('jsonp without cache', puppeteerHelper, async (t, page) => {
 				callbackName: 'test'
 			});
 		});
-
 	});
 	t.not(result[0], result[1]);
 });
 
-
 test('jsonp url with beforeSend', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		const rst = {};
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp',
-			beforeSend(url, options) {
-				rst.url = url;
-				rst.options = options;
-			},
-			success(data) {
-				rst.data = data;
-				rs(rst);
-			}
-		});
-	}));
-	const { url, options, data } = result;
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				const rst = {};
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsonp',
+					beforeSend(url, options) {
+						rst.url = url;
+						rst.options = options;
+					},
+					success(data) {
+						rst.data = data;
+						rs(rst);
+					}
+				});
+			})
+	);
+	const {url, options, data} = result;
 	t.regex(url, /http:\/\/127\.0\.0\.1:8080\/jsonp/);
 	t.deepEqual(data, {
 		hello: 'world'
 	});
 	t.true(isObj(options));
 });
-
-
 
 test('jsonp url with beforeSend return false', puppeteerHelper, async (t, page) => {
 	t.plan(1);
@@ -203,8 +211,6 @@ test('jsonp url with beforeSend return false', puppeteerHelper, async (t, page) 
 	await sleep(2000);
 });
 
-
-
 test('jsonp with script load error unhandled', puppeteerHelper, async (t, page) => {
 	t.plan(1);
 	await page.goto('http://127.0.0.1:3000/test.html');
@@ -222,118 +228,124 @@ test('jsonp with script load error unhandled', puppeteerHelper, async (t, page) 
 	await sleep(2000);
 });
 
-
 test('jsonp with script load error handled', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsop',
-			success(data) {
-				rs(data);
-			},
-			error(err, e) {
-				rs({
-					message: err.message,
-					e
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsop',
+					success(data) {
+						rs(data);
+					},
+					error(err, e) {
+						rs({
+							message: err.message,
+							e
+						});
+					}
 				});
-			}
-		});
-	}));
-	const { message, e } = result;
+			})
+	);
+	const {message, e} = result;
 	t.regex(message, /Load script/);
 	t.true(isObj(e));
 });
 
-
-
 test('jsonp with only complete and script load error', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsop',
-			complete(status) {
-				rs(status);
-			}
-		});
-	}));
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsop',
+					complete(status) {
+						rs(status);
+					}
+				});
+			})
+	);
 	t.is(result, 'error');
 });
 
-
-
 test('jsonp with complete and script load error handled', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		const rst = {};
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsop',
-			error(err, e) {
-				rst.message = err.message;
-				rst.e = e;
-			},
-			complete(status) {
-				rst.status = status;
-				rs(rst);
-			}
-		});
-	}));
-	const { message, e, status } = result;
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				const rst = {};
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsop',
+					error(err, e) {
+						rst.message = err.message;
+						rst.e = e;
+					},
+					complete(status) {
+						rst.status = status;
+						rs(rst);
+					}
+				});
+			})
+	);
+	const {message, e, status} = result;
 	t.regex(message, /Load script/);
 	t.true(isObj(e));
 	t.is(status, 'error');
 });
 
-
-
 test('jsonp with success and error', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		const rst = {};
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp',
-			crossorigin: 'anonymous',
-			success(data) {
-				rst.data = data;
-			},
-			error(err, e) {
-				rst.message = err.message;
-				rst.e = e;
-				rs(rst);
-			}
-		});
-	}));
-	const { message, e, data } = result;
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				const rst = {};
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsonp',
+					crossorigin: 'anonymous',
+					success(data) {
+						rst.data = data;
+					},
+					error(err, e) {
+						rst.message = err.message;
+						rst.e = e;
+						rs(rst);
+					}
+				});
+			})
+	);
+	const {message, e, data} = result;
 	t.regex(message, /Load script/);
 	t.true(isObj(e));
 	t.is(data, undefined);
 });
 
-
-
 test('jsonp with all callback', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:3000/test.html');
-	const result = await page.evaluate(() => new Promise(rs => {
-		const rst = {};
-		tinyjx.jsonp({
-			url: 'http://127.0.0.1:8080/jsonp',
-			beforeSend(url, options) {
-				rst.url = url;
-				rst.options = options;
-			},
-			success(data) {
-				rst.data = data;
-			},
-			error(err, e) {
-				rst.err = err;
-				rst.e = e;
-			},
-			complete(status) {
-				rst.status = status;
-				rs(rst);
-			}
-		});
-	}));
-	const { url, options, data, err, e, status } = result;
+	const result = await page.evaluate(
+		() =>
+			new Promise(rs => {
+				const rst = {};
+				tinyjx.jsonp({
+					url: 'http://127.0.0.1:8080/jsonp',
+					beforeSend(url, options) {
+						rst.url = url;
+						rst.options = options;
+					},
+					success(data) {
+						rst.data = data;
+					},
+					error(err, e) {
+						rst.err = err;
+						rst.e = e;
+					},
+					complete(status) {
+						rst.status = status;
+						rs(rst);
+					}
+				});
+			})
+	);
+	const {url, options, data, err, e, status} = result;
 	t.regex(url, /http:\/\/127\.0\.0\.1:8080\/jsonp/);
 	t.true(isObj(options));
 	t.deepEqual(data, {
@@ -343,7 +355,6 @@ test('jsonp with all callback', puppeteerHelper, async (t, page) => {
 	t.falsy(e);
 	t.is(status, 'success');
 });
-
 
 /********************* ajax *********************/
 test('ajax get success', puppeteerHelper, async (t, page) => {
@@ -547,30 +558,119 @@ test('ajax options success', puppeteerHelper, async (t, page) => {
 	t.is(abortType, 'function');
 });
 
-
 test('ajax invalid http method', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:8080/test.html');
+	const result = page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.ajax({
+					url: 'http://127.0.0.1:8080/ajax',
+					method: 'test'
+				});
+			})
+	);
+	await t.throwsAsync(result);
+});
+
+test('ajax invalid contentType', puppeteerHelper, async (t, page) => {
+	await page.goto('http://127.0.0.1:8080/test.html');
+	const result = page.evaluate(
+		() =>
+			new Promise(rs => {
+				tinyjx.ajax({
+					url: 'http://127.0.0.1:8080/ajax',
+					contentType: 123
+				});
+			})
+	);
+	await t.throwsAsync(result);
+});
+
+test('ajax predefined contentType', puppeteerHelper, async (t, page) => {
+	await page.goto('http://127.0.0.1:8080/test.html');
 	const result = page.evaluate(() => {
+		const rst = {};
 		return new Promise(rs => {
 			tinyjx.ajax({
 				url: 'http://127.0.0.1:8080/ajax',
-				method: 'test'
+				method: 'post',
+				contentType: 'json',
+				data: {
+					hello: 'world'
+				},
+				serialize({data, method, contentType, url, cache}) {
+					rst.data = data;
+					rst.method = method;
+					rst.contentType = contentType;
+					rst.url = url;
+					rst.cache = cache;
+					rs(rst);
+				}
 			});
+			const {data, method, contentType, url, cache} = result;
+			t.deepEqual(data, {
+				hello: 'world'
+			});
+			t.is(method, 'POST');
+			t.is(contentType, 'application/json');
+			t.is(url, 'http://127.0.0.1:8080/ajax');
+			t.true(cache);
 		});
 	});
 	await t.throwsAsync(result);
 });
 
-
-test('ajax invalid contentType', puppeteerHelper, async (t, page) => {
+test('ajax with error unhandled', puppeteerHelper, async (t, page) => {
 	await page.goto('http://127.0.0.1:8080/test.html');
-	const result = page.evaluate(() => {
+	page.on('pageerror', err => {
+		t.regex(err.message, /Remote server error/);
+	});
+	await page.evaluate(() => {
+		tinyjx.ajax({
+			url: 'http://127.0.0.1:8080/ajaxerr'
+		});
+	});
+	await sleep(2000);
+});
+
+test('ajax with error handled', puppeteerHelper, async (t, page) => {
+	await page.goto('http://127.0.0.1:8080/test.html');
+	const result = await page.evaluate(() => {
+		const rst = {};
 		return new Promise(rs => {
 			tinyjx.ajax({
-				url: 'http://127.0.0.1:8080/ajax',
-				contentType: 123
+				url: 'http://127.0.0.1:8080/ajaxerr',
+				error(err, xhr, e) {
+					rst.message = err.message;
+					rst.xhr = xhr;
+					rst.e = e;
+					rs(rst);
+				}
 			});
 		});
 	});
-	await t.throwsAsync(result);
+	const {message, xhr, e} = result;
+	t.regex(message, /Remote server error/);
+	t.true(isObj(xhr));
+	t.true(isObj(e));
+});
+
+test('ajax with complete handled error', puppeteerHelper, async (t, page) => {
+	await page.goto('http://127.0.0.1:8080/test.html');
+	const result = await page.evaluate(() => {
+		const rst = {};
+		return new Promise(rs => {
+			tinyjx.ajax({
+				url: 'http://127.0.0.1:8080/ajaxerr',
+				complete(xhr, status) {
+					rst.xhr = xhr;
+					rst.status = status;
+					rs(rst);
+				}
+			});
+		});
+	});
+	const {xhr, status} = result;
+	t.true(isObj(xhr));
+	t.is(status, 'error');
 });

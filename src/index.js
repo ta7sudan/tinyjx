@@ -646,6 +646,7 @@ export function put(url, data, options) {
 		method: 'PUT'
 	});
 }
+
 export function del(url, data, options) {
 	return ajax({
 		...options,
@@ -654,6 +655,7 @@ export function del(url, data, options) {
 		method: 'DELETE'
 	});
 }
+
 export function patch(url, data, options) {
 	return ajax({
 		...options,
@@ -662,6 +664,7 @@ export function patch(url, data, options) {
 		method: 'PATCH'
 	});
 }
+
 export function options(url, data, options) {
 	return ajax({
 		...options,
