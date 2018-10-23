@@ -11,9 +11,6 @@ script:
 - npm test
 git:
   depth: 1
-branches:
-  only:
-  - master
 notifications:
   email:
     on_success: never
