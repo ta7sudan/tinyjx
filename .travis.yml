@@ -1,0 +1,27 @@
+language: node_js
+node_js:
+- '10'
+install:
+- npm ci
+cache:
+  directories:
+  - "$HOME/.npm"
+script:
+- npm run lint
+- npm test
+git:
+  depth: 1
+branches:
+  only:
+  - master
+deploy:
+  provider: npm
+  email: ta7sudan@gamil.com
+  on:
+    tags: true
+  api_key:
+    secure: dg5vjyzxUtYqLdcyNHUN8HFufCPq+n1MJ9jfUYewLPu+BGzGonTRz2gGyiyKsVaoUS5ml7W089Uwy47OX1qMYam7WjBKzHPWDxgF35akSlNab8gPS2K+fgw25Mo1Rx0I1Qgn+mXHGhAo5G82ltxwWiNtqsOaHgzjUbClW4Nr00PlbmxvtoAiiHF9f9KAA3nsOrHni3F6ISnCuYADlooC+H4HVb+gw6c+35SggVccJ8YnuOp9iwyQzywiyC8EBKPLvcCeRnqPcY0ZcBoyFuA2+KjyZ9t4fk3eerf9ZKB3ACE2eWeWIRQeUs6BdYYFEpJTgXRGriRYp2yK6xEAIDCp3bxUoxGlIsqdzcy3E3Sum5nXTho0vWPIX3YjslNFAaqBsLubU886qxxDNGt3IUwzxgtWsx2z8IyddPp6B8zHgUB+m7zadjDbAdxuTQOWOUWqzuXezz9JxhOPh9SDzpO2sErhnfVTQG3TC7hfCpFvLktcQ8si0OilBeEX6gHI6rXV1jsczVrzpJVg5A7Ltv1sHcfk5SBqQEM8bB6yurCx3AS1iWO8VE6eqFKgF1VeM5S7ihjYY0wq5T6jrkoPO9VbwsiBmx4xathFdhD8PA2THSgjXAyeLpYLDXeOGA0gsfkvmWYEGMYAc/q7hIyej0FGWXj/Fom81uGImRiYPPuYip8=
+notifications:
+  email:
+    on_success: never
+    on_failure: always

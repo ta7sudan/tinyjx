@@ -360,6 +360,7 @@ tinyjx.ajax({
 		a: 1,
 		b: 2
 	},
+	withCredentials: true,
 	success(data, xhr, e) {
 		console.log(data);
 		console.log(xhr);
