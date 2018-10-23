@@ -16,7 +16,7 @@
     "lint": "eslint src test",
     "format": "prettier --config .prettierrc.js --write src/**/*.js test/**/*.js",
     "inspect": "jsinspect src",
-    "test": "rollup -c rollup.dev.js && ava -v",
+    "test": "ava -v",
     "prepare": "npm test && npm run build"
   },
   "repository": {

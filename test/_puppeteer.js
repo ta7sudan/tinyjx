@@ -1,7 +1,10 @@
 import test from 'ava';
 import puppeteer from 'puppeteer';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
 let browser = null;
+const sourceCode = readFileSync(resolve(__dirname, '../src/index.js'), 'utf8').replace(/export/g, '');
 
 // 其实这里不应该用before和after这样的框架API的,
 // 因为AVA的测试代码引入模块不知道为什么, 会导致多次
@@ -9,10 +12,10 @@ let browser = null;
 // 会实例化多次, 目前没看到有什么好的解决方案
 // 只能所有测试代码写在一个文件里了
 test.before(async () => {
-	browser = await puppeteer.launch();
-	// browser = await puppeteer.launch({
-	// 	headless: false
-	// });
+	// browser = await puppeteer.launch();
+	browser = await puppeteer.launch({
+		headless: false
+	});
 });
 
 test.after(async () => {
@@ -21,18 +24,28 @@ test.after(async () => {
 	}
 });
 
-export default async function startBrowser(t, run) {
-	const page = await browser.newPage();
-	try {
-		await run(t, page, browser);
-	} finally {
-		// 页面要在这里关闭, 不知道怎么把page注入到afterEach的作用域中去
-		await page.close();
-		// 但是不要在这里关闭浏览器, 多个测试可能多次关闭浏览器导致异常, 要么又加锁
-		// 但是我个人建议在after里关闭, 省心
-	}
-}
 
+export default function startBrowser(url = 'http://127.0.0.1:3000/test.html') {
+	return async function (t, run) {
+		const page = await browser.newPage();
+		await page.goto(url);
+		// 令人智熄的操作...
+		page.addScriptTag({
+			content: 'DEBUG = true;'
+		});
+		page.addScriptTag({
+			content: sourceCode
+		});
+		try {
+			await run(t, page, sourceCode, browser);
+		} finally {
+			// 页面要在这里关闭, 不知道怎么把page注入到afterEach的作用域中去
+			await page.close();
+			// 但是不要在这里关闭浏览器, 多个测试可能多次关闭浏览器导致异常, 要么又加锁
+			// 但是我个人建议在after里关闭, 省心
+		}
+	};
+}
 // 现在问题是解决了, 但是这个路子不怎么优雅, 那么问题来了
 // 1. 怎么在AVA中优雅地做到只实例化一个browser并且不需要通过全局变量?
 // 2. 现在虽然可以把page注入到测试代码的作用于中, 但是有没有什么办法
