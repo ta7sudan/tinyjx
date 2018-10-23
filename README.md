@@ -1,6 +1,6 @@
 # tinyjx
 <!-- [START badges] -->
-![Travis (.org) branch](https://img.shields.io/travis/ta7sudan/tinyjx/master.svg) [![GitHub license](https://img.shields.io/github/license/ta7sudan/tinyjx.svg)](https://github.com/ta7sudan/tinyjx/blob/master/LICENSE) ![npm](https://img.shields.io/npm/v/tinyjx.svg)
+![Travis (.org) branch](https://img.shields.io/travis/ta7sudan/tinyjx/master.svg) [![GitHub license](https://img.shields.io/github/license/ta7sudan/tinyjx.svg)](https://github.com/ta7sudan/tinyjx/blob/master/LICENSE) ![npm (tag)](https://img.shields.io/npm/v/tinyjx/latest.svg)
 <!-- [END badges] -->
 
 tinyjx is a tiny http client for browser.
