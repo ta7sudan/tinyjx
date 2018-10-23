@@ -163,7 +163,7 @@ function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, compl
 		let hasErrorCb = isFn(error),
 			hasCompleteCb = isFn(complete),
 			hasSuccessCb = isFn(success),
-			errOccured = false,
+			errOccurred = false,
 			resData = null;
 		// 覆盖用户自定义
 		xhr.onreadystatechange = function (e) {
@@ -173,7 +173,7 @@ function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, compl
 					this.status !== 0
 				) {
 					// 404之类的错误会在这里捕获, try-catch不能捕获
-					errOccured = true;
+					errOccurred = true;
 					if (!hasErrorCb && !hasCompleteCb) {
 						throw new Error(
 							`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`
@@ -189,7 +189,7 @@ function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, compl
 		try {
 			xhr.send(reqData || null);
 		} catch (e) {
-			errOccured = true;
+			errOccurred = true;
 			// 没有监听异常事件也不要吞掉异常, 跨域错误会在这里被捕获
 			if (!hasErrorCb && !hasCompleteCb) {
 				throw e;
@@ -198,7 +198,7 @@ function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, compl
 			hasErrorCb && error(e, xhr, null);
 			hasCompleteCb && complete(xhr, 'error');
 		}
-		if (!errOccured) {
+		if (!errOccurred) {
 			const resCtype = xhr.getResponseHeader('Content-Type');
 			// 这里也不捕获, 因为最外面已经捕获了
 			resData = dslz({
@@ -501,7 +501,7 @@ function ajax(options) {
 	xhr.onerror = function (e) {
 		// 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
 		if (!hasErrorCb && !hasCompleteCb) {
-			throw new Error(`An error occured, maybe crossorigin error. Request URL: ${this.requestURL}, Status code: ${this.status}.`);
+			throw new Error(`An error occurred, maybe crossorigin error. Request URL: ${this.requestURL}, Status code: ${this.status}.`);
 		}
 		if (!errCalled && hasErrorCb) {
 			error(new Error(`Network error or browser restricted. Request URL: ${this.requestURL}, Status code: ${this.status}`), this, e);

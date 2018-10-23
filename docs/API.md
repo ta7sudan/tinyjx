@@ -1,52 +1,3 @@
-# tinyjx
-<!-- [START badges] -->
-![Travis (.org) branch](https://img.shields.io/travis/ta7sudan/tinyjx/master.svg) [![GitHub license](https://img.shields.io/github/license/ta7sudan/tinyjx.svg)](https://github.com/ta7sudan/tinyjx/blob/master/LICENSE) ![npm](https://img.shields.io/npm/v/tinyjx.svg)
-<!-- [END badges] -->
-
-tinyjx is a tiny http client for browser.
-
-
-
-## Summary
-
-* Tree shaking friendly
-* Error tracking friendly
-* Small file size (with tree shaking only 5kb minified and 2kb gzip)
-* Xhr pool
-* Types supported
-* IE 10+
-
-
-
-## Install
-
-```shell
-$ npm i -P tinyjx
-```
-
-
-
-## Usage
-
-```javascript
-import { ajax } from 'tinyjx';
-ajax({
-    url: 'http://127.0.0.1/test',
-    method: 'post',
-    data: {
-        hello: world
-    },
-    success(data, xhr, event) {
-        console.log(data);
-    },
-    complete(xhr, status) {
-        console.log(status);
-    }
-})
-```
-
-
-
 ## API
 
 ### ajax(options: AsyncOptions): Abortable
@@ -55,31 +6,31 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 #### AsyncOptions: Object
 
-* `url`: `<string>`, URL to request
+- `url`: `<string>`, URL to request
 
-* `method`: `<string>`, HTTP method, case insensitive, default `"GET"`, only `GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` supported.
+- `method`: `<string>`, HTTP method, case insensitive, default `"GET"`, only `GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` supported.
 
-* `contentType`: `<string>`, MIME type for request body, also support predefined value `json`, `form`,  `html`, `xml`, `text`, which are `application/json`, `application/x-www-form-urlencoded`, `text/html`, `application/xml`, `text/plain`, default `json`
+- `contentType`: `<string>`, MIME type for request body, also support predefined value `json`, `form`,  `html`, `xml`, `text`, which are `application/json`, `application/x-www-form-urlencoded`, `text/html`, `application/xml`, `text/plain`, default `json`
 
-* `dataType`: `<string>`, MIME type expect from ther server, will be treat as `Accept`, default `json`
+- `dataType`: `<string>`, MIME type expect from ther server, will be treat as `Accept`, default `json`
 
-* `headers`: request headers, which is a key-value object. eg. `{'Content-Type': 'text/plain'}`
+- `headers`: request headers, which is a key-value object. eg. `{'Content-Type': 'text/plain'}`
 
-* `cache`: allow browser to cache responses, default `true`
+- `cache`: allow browser to cache responses, default `true`
 
-* `responseType`: specifies the `xhr.responseType`
+- `responseType`: specifies the `xhr.responseType`
 
-* `mimeType`: specifies the parameters of `xhr.overrideMimeType()`
+- `mimeType`: specifies the parameters of `xhr.overrideMimeType()`
 
-* `withCredentials`: specifies the `xhr.withCredentials`
+- `withCredentials`: specifies the `xhr.withCredentials`
 
-* `timeout`: specifies the `xhr.timeout`
+- `timeout`: specifies the `xhr.timeout`
 
-* `username`: user name to use for authentication
+- `username`: user name to use for authentication
 
-* `password`: password to use for authentication
+- `password`: password to use for authentication
 
-* `events`: events of [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), except of `onerror` and `onreadystatechange`, which will be  overriden by tinyjx. eg.
+- `events`: events of [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest), except of `onerror` and `onreadystatechange`, which will be  overriden by tinyjx. eg.
 
   ```javascript
   {
@@ -88,19 +39,19 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
   }
   ```
 
-* `uploadEvents`: events of [XMLHttpRequestUpload](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/upload)
+- `uploadEvents`: events of [XMLHttpRequestUpload](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/upload)
 
-* `beforeSend(xhr, options)`: `<Function>`, before the request is sent. `options` is `AsyncOptions`.  Return `false` will cancel the request
+- `beforeSend(xhr, options)`: `<Function>`, before the request is sent. `options` is `AsyncOptions`.  Return `false` will cancel the request
 
-* `success(data, xhr, event)`: `<Function>`, when request succeeds
+- `success(data, xhr, event)`: `<Function>`, when request succeeds
 
-* `error(err, xhr, event)`: `<Function>`, when error occurred
+- `error(err, xhr, event)`: `<Function>`, when error occurred
 
-* `complete(xhr, status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
+- `complete(xhr, status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
 
-* `ontimeout(event)`: `<Function>`, similar with `xhr.ontimeout`, but `this` is null
+- `ontimeout(event)`: `<Function>`, similar with `xhr.ontimeout`, but `this` is null
 
-* `serialize`: `<Function>`, specifies a serialize method for this request, returns an object which contains `url` and `data`. `options` contains: 
+- `serialize`: `<Function>`, specifies a serialize method for this request, returns an object which contains `url` and `data`. `options` contains: 
 
   - `data`: raw data in `AsyncOptions`/`SyncOptions`
   - `url`: `<string>`, request URL
@@ -129,7 +80,7 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
   // with body {"hello": "world"}
   ```
 
-* `deserialize`: `<Function>`, specifies a deserialize method for all responses, returns anything what you want which will be the `data` of `success` callback. `options` contains: 
+- `deserialize`: `<Function>`, specifies a deserialize method for all responses, returns anything what you want which will be the `data` of `success` callback. `options` contains: 
 
   - `data`: raw data in response, may be `xhr.responseXML`, `xhr.response` or `xhr.responseText`
   - `contentType`: `Content-Type` header of response
@@ -189,14 +140,14 @@ Returns `undefined`.
 
 #### JsonpOptions: Object
 
-* `url`: URL to request
-* `cache`: `<boolean>`, allow browser to cache responses, default `false`
-* `crossorigin`: `crossorigin` attribute of `<script>`, default isn't set
-* `callbackName`: `<string>`, custom callback name, default `jsonp${randomId}`
-* `beforeSend(url, options)`: `<Function>`, before the request is sent. `options` is `JsonpOptions`.  Return `false` will cancel the request
-* `success(args)`: `<Function>`, when request succeeds
-* `error(err, event)`: `<Function>`, when error occurred
-* `complete(status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
+- `url`: URL to request
+- `cache`: `<boolean>`, allow browser to cache responses, default `false`
+- `crossorigin`: `crossorigin` attribute of `<script>`, default isn't set
+- `callbackName`: `<string>`, custom callback name, default `jsonp${randomId}`
+- `beforeSend(url, options)`: `<Function>`, before the request is sent. `options` is `JsonpOptions`.  Return `false` will cancel the request
+- `success(args)`: `<Function>`, when request succeeds
+- `error(err, event)`: `<Function>`, when error occurred
+- `complete(status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
 
 
 
@@ -259,19 +210,3 @@ A `DELETE` request wrapper of `ajax()`.
 ### options(url: string, data: any, options: AsyncOptions): Abortable
 
 A `OPTIONS` request wrapper of `ajax()`.
-
-
-
-## TODO
-
-* More test 
-
-
-
-## License
-
-Licensed under the [MIT License](https://kbrsh.github.io/license/).
-
-
-
-
