@@ -108,6 +108,8 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
   - `contentType`: `<string>`, MIME type of `data` 
   - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
 
+
+
   ```javascript
   ajax({
   	url: 'http://127.0.0.1:8080/ajax',
@@ -134,6 +136,8 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
   - `data`: raw data in response, may be `xhr.responseXML`, `xhr.response` or `xhr.responseText`
   - `contentType`: `Content-Type` header of response
   - `acceptType`: `Accept` of request
+
+
 
   ```javascript
   ajax({
@@ -169,9 +173,9 @@ But also support called as callback like.
 ```javascript
 ajaxSync({
 	url: 'http://127.0.0.1:8080/ajax',
-    success(data) {
+	success(data) {
 		console.log(data);
-    }
+	}
 });
 ```
 
