@@ -63,11 +63,6 @@ interface AsyncOptions extends NoBodyMethodOptions {
 	url?: string;
 	method?: HTTPMethod;
 }
-interface SyncOptions extends RequestOptions {
-	url?: string;
-	method?: HTTPMethod;
-	data?: any;
-}
 interface JsonpOptions {
 	url: string;
 	cache?: boolean;
@@ -86,7 +81,6 @@ interface ConfigOptions {
 
 export function config(options: ConfigOptions): void;
 export function ajax(options: AsyncOptions): Abortable;
-export function ajaxSync(options: SyncOptions): any;
 export function jsonp(options: JsonpOptions): void;
 export function get(url: string, options: NoBodyMethodOptions): Abortable;
 export function head(url: string, options: NoBodyMethodOptions): Abortable;

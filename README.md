@@ -156,37 +156,6 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 
 
-### ajaxSync(options: SyncOptions): any
-
-Returns response data. eg.
-
-```javascript
-const data = ajaxSync({
-	url: 'http://127.0.0.1:8080/ajax'
-});
-console.log(data);
-// {hello: 'world'}
-```
-
-But also support called as callback like.
-
-```javascript
-ajaxSync({
-	url: 'http://127.0.0.1:8080/ajax',
-	success(data) {
-		console.log(data);
-	}
-});
-```
-
-Note: **All callbacks in synchronous request will be called synchronously.**
-
-#### SyncOptions: Object
-
-Similar with `AsyncOptions`, but doesn't support `responseType`, `timeout`, `ontimeout`, `withCredentials`.
-
-
-
 ### jsonp(options: JsonpOptions): void
 
 Returns `undefined`.

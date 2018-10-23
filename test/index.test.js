@@ -2,7 +2,7 @@ import test from 'ava';
 import puppeteerHelper from './_puppeteer';
 import './_pock';
 
-/* global jsonp, ajax, ajaxSync, config */
+/* global jsonp, ajax, config */
 
 /**
  * AVA 默认不处理src下面的文件, 所以需要@babel/register

@@ -156,71 +156,6 @@ function setHeaders(xhr, headers) {
 	}
 }
 
-function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, complete }) {
-	// 这一坨有点恶心...考虑下怎么优化
-	// 这里是为了捕获callback的异常, 以便最终可以reset
-	try {
-		let hasErrorCb = isFn(error),
-			hasCompleteCb = isFn(complete),
-			hasSuccessCb = isFn(success),
-			errOccurred = false,
-			resData = null;
-		// 覆盖用户自定义
-		xhr.onreadystatechange = function (e) {
-			if (this.readyState === 4) {
-				if (
-					!((this.status >= 200 && this.status < 300) || this.status == 304) &&
-					this.status !== 0
-				) {
-					// 404之类的错误会在这里捕获, try-catch不能捕获
-					errOccurred = true;
-					if (!hasErrorCb && !hasCompleteCb) {
-						throw new Error(
-							`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`
-						);
-					}
-					// 异常不管直接抛
-					hasErrorCb && error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`), xhr, e);
-					hasCompleteCb && complete(xhr, 'error');
-				}
-			}
-		};
-		// 同步不触发onerror, 这里是为了捕获网络异常h和跨域异常
-		try {
-			xhr.send(reqData || null);
-		} catch (e) {
-			errOccurred = true;
-			// 没有监听异常事件也不要吞掉异常, 跨域错误会在这里被捕获
-			if (!hasErrorCb && !hasCompleteCb) {
-				throw e;
-			}
-			// 异常不管直接抛
-			hasErrorCb && error(e, xhr, null);
-			hasCompleteCb && complete(xhr, 'error');
-		}
-		if (!errOccurred) {
-			const resCtype = xhr.getResponseHeader('Content-Type');
-			// 这里也不捕获, 因为最外面已经捕获了
-			resData = dslz({
-				data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
-				contentType: resCtype,
-				acceptType
-			});
-			// 异常直接抛, success不能在try中, 可能是success导致的异常进而使得控制流走向error
-			hasSuccessCb && success(resData, xhr, null);
-			hasCompleteCb && complete(xhr, 'success');
-		}
-		// loadend会在请求完成之后同步代码之前触发, 导致没办法依赖loadend来reset, 必须等到所有callback使用完xhr之后
-		// xhr才算idle, 但是如果callback中异步引用了xhr也依然会有问题, 因为目的是希望所有callback执行完之后
-		// 就不再使用xhr了, 避免xhr在下个请求中产生竞争, 除非不向callback暴露xhr, 但这也不现实
-		resetXhr(xhr);
-		return resData;
-	} catch (err) {
-		resetXhr(xhr);
-		throw err;
-	}
-}
-
 function setEvents(target, evts) {
 	if (isObj(evts) && target) {
 		// 不用addEventListener是它不方便reset
@@ -539,105 +474,6 @@ function ajax(options) {
 	};
 }
 
-function ajaxSync(options) {
-	// 同步请求忽略timeout, responseType, withCredentials, 否则报错
-	// 同步请求的callback都同步调用, 支持callback只是为了API保持一致
-	let {
-		url = location.href,
-		method = 'GET',
-		contentType: reqCtype,
-		beforeSend,
-		complete,
-		data: reqRawData,
-		dataType: acceptType = 'json',
-		error,
-		headers,
-		mimeType,
-		username,
-		password,
-		success,
-		events,
-		uploadEvents,
-		cache = true,
-		serialize,
-		deserialize
-	} = options;
-
-	method = method.toUpperCase().trim();
-	// IE是什么...
-	// xhr不支持CONNECT, TRACE, TRACK方法
-	if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].includes(method)) {
-		throw new Error(`Invalid HTTP method: ${method}`);
-	}
-	// 允许所有callback都没有
-
-	// 准备数据
-	if (isStr(reqCtype)) {
-		MIME[reqCtype] && (reqCtype = MIME[reqCtype]);
-	} else if (reqCtype) {
-		throw new TypeError(
-			'contentType could be "json", "form", "html", "xml", "text" or other custom string.'
-		);
-	}
-
-	const slz = isFn(serialize)
-			? serialize
-			: isFn(globalSerialize)
-				? globalSerialize
-				: defaultSerialize,
-		dslz = isFn(deserialize)
-			? deserialize
-			: isFn(globalDeserialize)
-				? globalDeserialize
-				: defaultDeserialize,
-		xhr = xhrFactory();
-
-	let reqData;
-	({ url, data: reqData } = slz({ data: reqRawData, method, contentType: reqCtype, url, cache }));
-
-	// 初始化xhr
-	xhr._active = true;
-	xhr.open(method, url, false, username, password);
-	!xhr.requestURL && (xhr.requestURL = url);
-
-	// 设置必要的头部
-	if (reqCtype) {
-		xhr.setRequestHeader('Content-Type', reqCtype);
-	} else if (isStr(reqData)) {
-		// 不在默认参数设json是为了让FormData之类的能够由浏览器自己设置
-		// 这里只对字符串的body设置默认为json
-		xhr.setRequestHeader('Content-Type', MIME.json);
-	}
-	if (isStr(acceptType)) {
-		MIME[acceptType] && (acceptType = MIME[acceptType]);
-		xhr.setRequestHeader('Accept', acceptType);
-	}
-	setHeaders(xhr, headers);
-
-	isStr(mimeType) && xhr.overrideMimeType(mimeType);
-
-	// 主要是给progress等事件用, 但存在破坏封装的风险
-	setEvents(xhr, events);
-	setEvents(xhr.upload, uploadEvents);
-
-	if (isFn(beforeSend)) {
-		let rst;
-		try {
-			rst = beforeSend(xhr, options);
-		} catch (e) {
-			resetXhr(xhr);
-			throw e;
-		}
-		if (rst !== false) {
-			return isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, complete });
-		} else {
-			resetXhr(xhr);
-		}
-	} else {
-		return isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, complete });
-	}
-}
-
 export function config({ pool = false, serialize, deserialize } = {}) {
 	if (pool) {
 		xhrPool.length = 0;
@@ -653,7 +489,7 @@ export function config({ pool = false, serialize, deserialize } = {}) {
 	isFn(deserialize) && (globalDeserialize = deserialize);
 }
 
-export { ajax, ajaxSync, jsonp };
+export { ajax, jsonp };
 
 export function get(url, options) {
 	return ajax({

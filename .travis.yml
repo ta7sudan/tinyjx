@@ -19,6 +19,7 @@ deploy:
   provider: npm
   skip_cleanup: true
   email: ta7sudan@gmail.com
+  tag: next
   api_key:
     secure: j/CrErTXKz1OikIcHhJtD2nNvK7NTw5C7DCtM8y1W3qaaiYVzM63shToBiItLY/kdd0SxDzC+WZLqcqfAYIAscX4p2NHwtnqTo8RBovqkOC7R82+zBj+6f3V3mQKKbj2bCnLkiDwzvG6HrhCUw5VolAMKrR7K7woqnDHuK+Ft8viSy5UPrZbyW6cnZQwf9NhjvrGhN+DAtUQZ5EkFutkUi/Miz81ZId1kBBSrwl4N+nnQ+0TiUqMVD2xFiJeDskTPMMX0eQc/y0e7d8K9TONg5ihkS9BzeS5hwKefnE/FWZrCAXvN4bMHQ+9IKWYOe2L65Hi1lp1AoMWthW9iZAOaqxZ5JTsIOIlQPd26vLoDjHDTCZD0HrpDfXcTc5BG7P06ek61E72TPMj9HUEuRdfGElI4/TmO5iPZ0UhuARvy+Z5fq4eUr+PNSw2BH2TxLxsAP7SerjfGyfUjBNMfugJiRukHXKmhjRriuiINAgeRjhZtQr6wlxvOEeFK5s6YFMf3Dn+dbG1d4D0Wgb75ncFLBWc6XBEkQ/Xaxe1sOX0wrHOZYzXmpiVPdElHSDkyB5gSjwaG5GofNlgZgLwIii6EE+V+M9Y+6qoperimHNX/XGKjiZLvjGJ+7J38ks6fJPsnVS89r4oJOMq5BIlw5nrxsk2pXZahFzV+O7XRUplcjE=
   on:

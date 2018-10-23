@@ -1,6 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import replace from 'rollup-plugin-replace';
-import { uglify } from 'rollup-plugin-uglify';
+import minify from 'rollup-plugin-babel-minify';
 import { browser, module, name, version, license, author, homepage } from './package.json';
 
 /**
@@ -54,14 +54,8 @@ export default [
 			babel({
 				exclude: 'node_modules/**'
 			}),
-			uglify({
-				compress: {
-					/* eslint-disable-next-line */
-					pure_getters: true
-				},
-				output: {
-					comments: /@Version|@Author|@Repo|@License/i
-				}
+			minify({
+				comments: false
 			})
 		],
 		output: {
