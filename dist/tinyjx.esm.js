@@ -1,5 +1,5 @@
 /**
- * @Version 0.1.6
+ * @Version 0.2.0
  * @Author: ta7sudan
  * @Repo: https://github.com/ta7sudan/tinyjx#readme
  * @License: MIT
