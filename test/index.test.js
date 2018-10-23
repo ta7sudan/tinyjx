@@ -377,6 +377,7 @@ test('ajax head success', puppeteerHelper('http://127.0.0.1:8080/test.html'), as
 				url: 'http://127.0.0.1:8080/ajax',
 				method: 'head',
 				success(data, xhr, e) {
+					console.log(data);
 					rst.data = data;
 					rst.id = xhr._id;
 					rst.active = xhr._active;
@@ -388,7 +389,7 @@ test('ajax head success', puppeteerHelper('http://127.0.0.1:8080/test.html'), as
 		});
 	});
 	const { data, id, active, e, abortType } = result;
-	t.is(data, null);
+	t.is(data, '');
 	t.true(typeof id === 'number');
 	t.true(typeof active === 'boolean');
 	t.true(isObj(e));

@@ -144,6 +144,8 @@ function defaultDeserialize({ data, contentType, acceptType }) {
 			console.error('Invalid json string');
 			rst = data;
 		}
+	} else {
+		rst = data;
 	}
 	return rst;
 }
@@ -200,7 +202,7 @@ function isolateTryCatch({ xhr, reqData, acceptType, dslz, success, error, compl
 			const resCtype = xhr.getResponseHeader('Content-Type');
 			// 这里也不捕获, 因为最外面已经捕获了
 			resData = dslz({
-				data: xhr.responseXML || xhr.response || xhr.responseText,
+				data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
 				contentType: resCtype,
 				acceptType
 			});
@@ -224,7 +226,7 @@ function setEvents(target, evts) {
 		// 不用addEventListener是它不方便reset
 		Object.keys(evts)
 			.filter(k => events.includes(k))
-			.forEach(k => (target[k] = events[k]));
+			.forEach(k => target[k] = evts[k]);
 	}
 }
 
@@ -320,6 +322,15 @@ function jsonp(options) {
 		});
 	} else {
 		document.body.appendChild(script);
+	}
+}
+
+function getResponse(xhr, key) {
+	// 在有responseType的情况下, 访问responseXML, responseText等都有可能抛出异常
+	try {
+		return xhr[key];
+	} catch (e) {
+		return null;
 	}
 }
 
@@ -455,7 +466,7 @@ function ajax(options) {
 				const resCtype = this.getResponseHeader('Content-Type');
 				// 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
 				const resData = dslz({
-					data: this.responseXML || this.response || this.responseText,
+					data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
 					contentType: resCtype,
 					acceptType
 				});

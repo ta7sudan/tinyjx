@@ -288,11 +288,91 @@
 // 	cache: false
 // });
 
+// tinyjx.ajax({
+// 	url: 'http://127.0.0.1:8080/ajax',
+// 	beforeSend(xhr, options) {
+// 		console.log(xhr);
+// 		console.log(options);
+// 		return false;
+// 	}
+// });
+
+// tinyjx.ajax({
+// 	url: 'http://127.0.0.1:8080/ajaxdelay',
+// 	method: 'post',
+// 	timeout: 1000,
+// 	events: {
+// 		ontimeout(e) {
+// 			console.log('timeout');
+// 		},
+// 		onloadend(e) {
+// 			console.log('loadend');
+// 		}
+// 	}
+// });
+
+
+// tinyjx.ajax({
+// 	url: 'http://127.0.0.1:8080/ajax',
+// 	method: 'post',
+// 	uploadEvents: {
+// 		ontimeout(e) {
+// 			console.log('timeout');
+// 		},
+// 		onloadend(e) {
+// 			console.log('loadend');
+// 		}
+// 	}
+// });
+
+// tinyjx.ajax({
+// 	url: 'http://127.0.0.1:8080/ajax',
+// 	method: 'post',
+// 	responseType: 'arraybuffer',
+// 	success(data, xhr, e) {
+// 		console.log(data)
+// 	}
+// });
+
+// window.onerror = function (msg) {
+// 	console.log(msg);
+// };
+// tinyjx.ajax({
+// 	url: 'http://127.0.0.1:8080/ajax',
+// 	method: 'post',
+// 	contentType: 'form',
+// 	data: {
+// 		测试: '测试',
+// 		aaa: 'bbb'
+// 	},
+// 	error(err, xhr, e) {
+// 		console.log(err);
+// 		console.log(xhr);
+// 		console.log(e);
+// 	}
+// });
+
+
 tinyjx.ajax({
 	url: 'http://127.0.0.1:8080/ajax',
-	beforeSend(xhr, options) {
+	method: 'post',
+	data: {
+		a: 1,
+		b: 2
+	},
+	success(data, xhr, e) {
+		console.log(data);
 		console.log(xhr);
-		console.log(options);
-		return false;
+		console.log(e);
+	},
+	error(err, xhr, e) {
+		console.log(err);
+		console.log(xhr);
+		console.log(e);
+	},
+	complete(xhr, status) {
+		console.log(xhr);
+		console.log(status);
 	}
 });
+

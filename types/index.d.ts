@@ -1,9 +1,19 @@
 interface Abortable {
 	abort(): void;
 }
+
+enum HTTPMethod {
+	GET = 'GET',
+	POST = 'POST',
+	HEAD = 'HEAD',
+	PUT = 'PUT',
+	PATCH = 'PATCH',
+	DELETE = 'DELETE',
+	OPTIONS = 'OPTIONS',
+}
 interface SerializeOptions {
 	data?: any;
-	method?: string;
+	method?: HTTPMethod;
 	contentType?: string;
 	url?: string;
 	cache?: boolean;
@@ -51,11 +61,11 @@ interface NoBodyMethodOptions extends BodyMethodOptions {
 }
 interface AsyncOptions extends NoBodyMethodOptions {
 	url?: string;
-	method?: string;
+	method?: HTTPMethod;
 }
 interface SyncOptions extends RequestOptions {
 	url?: string;
-	method?: string;
+	method?: HTTPMethod;
 	data?: any;
 }
 interface JsonpOptions {

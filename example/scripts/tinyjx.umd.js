@@ -177,6 +177,8 @@
         console.error('Invalid json string');
         rst = data;
       }
+    } else {
+      rst = data;
     }
 
     return rst;
@@ -244,7 +246,7 @@
         var resCtype = xhr.getResponseHeader('Content-Type'); // 这里也不捕获, 因为最外面已经捕获了
 
         resData = dslz({
-          data: xhr.responseXML || xhr.response || xhr.responseText,
+          data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
           contentType: resCtype,
           acceptType: acceptType
         }); // 异常直接抛, success不能在try中, 可能是success导致的异常进而使得控制流走向error
@@ -270,7 +272,7 @@
       Object.keys(evts).filter(function (k) {
         return events.indexOf(k) !== -1;
       }).forEach(function (k) {
-        return target[k] = events[k];
+        return target[k] = evts[k];
       });
     }
   }
@@ -378,6 +380,15 @@
       });
     } else {
       document.body.appendChild(script);
+    }
+  }
+
+  function getResponse(xhr, key) {
+    // 在有responseType的情况下, 访问responseXML, responseText等都有可能抛出异常
+    try {
+      return xhr[key];
+    } catch (e) {
+      return null;
     }
   }
 
@@ -511,7 +522,7 @@
           var resCtype = this.getResponseHeader('Content-Type'); // 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
 
           var resData = dslz({
-            data: this.responseXML || this.response || this.responseText,
+            data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
             contentType: resCtype,
             acceptType: acceptType
           }); // 异常直接抛
