@@ -21,7 +21,7 @@ tinyjx is a tiny http client for browser.
 ## Install
 
 ```shell
-$ npm i -P tinyjx
+$ npm i -P tinyjx@next
 ```
 
 
