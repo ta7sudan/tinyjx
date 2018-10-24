@@ -24,4 +24,4 @@ deploy:
   on:
     tags: true
     repo: ta7sudan/tinyjx
-    branch: dev
+    branch: master
