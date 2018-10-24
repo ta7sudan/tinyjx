@@ -1,6 +1,6 @@
 {
   "name": "tinyjx",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A tiny http client for browser",
   "main": "dist/tinyjx.umd.js",
   "module": "dist/tinyjx.esm.js",
@@ -75,11 +75,11 @@
     "lint-staged": "^7.3.0",
     "opn-cli": "^3.1.0",
     "pock": "^0.3.3",
-    "prettier": "^1.14.3", 
+    "prettier": "^1.14.3",
     "puppeteer": "^1.9.0",
     "rimraf": "^2.6.2",
     "rollup": "^0.66.6",
-    "rollup-plugin-babel": "^4.0.3", 
+    "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-babel-minify": "^6.1.1",
     "rollup-plugin-replace": "^2.1.0"
   }
