@@ -97,7 +97,7 @@
 
   function querystring(obj) {
     if (isObj(obj)) {
-      return Object.keys(obj).map(k => Array.isArray(obj[k]) ? obj[k].map(v => `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(v))}`).join('&') : `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(obj[k]))}`).join('&');
+      return Object.keys(obj).map(k => Array.isArray(obj[k]) ? obj[k].map(v => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&') : `${encodeURIComponent(k)}=${encodeURIComponent(obj[k])}`).join('&');
     } else {
       return JSON.stringify(obj);
     }
