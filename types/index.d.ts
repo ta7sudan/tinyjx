@@ -2,7 +2,7 @@ interface Abortable {
 	abort(): void;
 }
 
-enum HTTPMethod {
+declare enum HTTPMethod {
 	GET = 'GET',
 	POST = 'POST',
 	HEAD = 'HEAD',
