@@ -101,8 +101,8 @@ function querystring(obj) {
   if (isObj(obj)) {
     return Object.keys(obj).map(function (k) {
       return Array.isArray(obj[k]) ? obj[k].map(function (v) {
-        return encodeURIComponent(k) + "=" + encodeURIComponent(JSON.stringify(v));
-      }).join('&') : encodeURIComponent(k) + "=" + encodeURIComponent(JSON.stringify(obj[k]));
+        return encodeURIComponent(k) + "=" + encodeURIComponent(v);
+      }).join('&') : encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]);
     }).join('&');
   } else {
     return JSON.stringify(obj);

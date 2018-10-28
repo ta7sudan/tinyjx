@@ -84,9 +84,9 @@ function querystring(obj) {
 				k =>
 					Array.isArray(obj[k])
 						? obj[k]
-							.map(v => `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(v))}`)
+							.map(v => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
 							.join('&')
-						: `${encodeURIComponent(k)}=${encodeURIComponent(JSON.stringify(obj[k]))}`
+						: `${encodeURIComponent(k)}=${encodeURIComponent(obj[k])}`
 			)
 			.join('&');
 	} else {
