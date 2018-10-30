@@ -58,6 +58,9 @@ export default [
 				comments: false
 			})
 		],
+		treeshake: {
+			propertyReadSideEffects: false
+		},
 		output: {
 			name,
 			banner,
