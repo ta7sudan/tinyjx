@@ -1,9 +1,3 @@
-/**
- * @Version 0.2.6
- * @Author: ta7sudan
- * @Repo: https://github.com/ta7sudan/tinyjx#readme
- * @License: MIT
- */
 function _extends() {
   _extends = Object.assign || function (target) {
     for (var i = 1; i < arguments.length; i++) {
