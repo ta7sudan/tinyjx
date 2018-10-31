@@ -1,9 +1,3 @@
-/**
- * @Version 0.3.8
- * @Author: ta7sudan
- * @Repo: https://github.com/ta7sudan/tinyjx#readme
- * @License: MIT
- */
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
