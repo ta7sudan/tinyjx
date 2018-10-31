@@ -412,7 +412,7 @@ function ajax(options) {
 				// 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
 				if (!hasErrorCb && !hasCompleteCb) {
 					throw new Error(
-						`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`
+						`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`
 					);
 				}
 				// 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
@@ -422,7 +422,7 @@ function ajax(options) {
 				// 但是我要加!!!
 				if (hasErrorCb) {
 					errCalled = true;
-					error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code ${this.status}`), this, e);
+					error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), this, e);
 				}
 				if (hasCompleteCb) {
 					completeCalled = true;

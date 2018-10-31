@@ -414,7 +414,7 @@ function ajax(options) {
       } else if (this.status !== 0) {
         // 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
         if (!hasErrorCb && !hasCompleteCb) {
-          throw new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}.`);
+          throw new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`);
         } // 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
         // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/status
         // 但是不加个心里不踏实...总感觉会不会有浏览器没按规范实现
@@ -424,7 +424,7 @@ function ajax(options) {
 
         if (hasErrorCb) {
           errCalled = true;
-          error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code ${this.status}`), this, e);
+          error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), this, e);
         }
 
         if (hasCompleteCb) {
