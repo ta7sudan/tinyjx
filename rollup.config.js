@@ -9,7 +9,6 @@ import { browser, module, name, version, license, author, homepage } from './pac
  * uglify的话则需要自己处理下注释
  */
 
-/* eslint-disable-next-line */
 const banner = `/**
  * @Version ${version}
  * @Author: ${author}
@@ -65,7 +64,7 @@ export default [
 		},
 		output: {
 			name,
-			// banner,
+			banner,
 			file: 'dist/tinyjx.min.js',
 			format: 'umd',
 			sourcemap: true,
