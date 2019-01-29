@@ -37,6 +37,7 @@ var isObj = function isObj(o) {
   return Object.prototype.toString.call(o) === '[object Object]';
 };
 
+var lc = window.location;
 var xhrPool = [],
     ArrayBufferView = Object.getPrototypeOf(Object.getPrototypeOf(new Uint8Array())).constructor,
     MIME = {
@@ -376,7 +377,7 @@ function getResponse(xhr, key) {
 
 function ajax(options) {
   var _options$url = options.url,
-      url = _options$url === void 0 ? location.href : _options$url,
+      url = _options$url === void 0 ? lc.href : _options$url,
       _options$method = options.method,
       method = _options$method === void 0 ? 'GET' : _options$method,
       reqCtype = options.contentType,
@@ -421,7 +422,8 @@ function ajax(options) {
 
   var slz = isFn(serialize) ? serialize : isFn(globalSerialize) ? globalSerialize : defaultSerialize,
       dslz = isFn(deserialize) ? deserialize : isFn(globalDeserialize) ? globalDeserialize : defaultDeserialize,
-      protocol = /^([\w-]+:)\/\//.exec(url)[1],
+      maybeProtocol = /^([\w-]+:)\/\//.exec(url),
+      protocol = maybeProtocol ? maybeProtocol[1] : /^(https?):\/\//.exec(lc.href)[1],
       xhr = xhrFactory(),
       hasCompleteCb = isFn(complete),
       hasErrorCb = isFn(error),
@@ -586,7 +588,7 @@ function ajaxSync(options) {
   // 同步请求忽略timeout, responseType, withCredentials, 否则报错
   // 同步请求的callback都同步调用, 支持callback只是为了API保持一致
   var _options$url2 = options.url,
-      url = _options$url2 === void 0 ? location.href : _options$url2,
+      url = _options$url2 === void 0 ? lc.href : _options$url2,
       _options$method2 = options.method,
       method = _options$method2 === void 0 ? 'GET' : _options$method2,
       reqCtype = options.contentType,
