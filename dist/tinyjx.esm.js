@@ -27,6 +27,7 @@ const isStr = v => v && typeof v === 'string';
 
 const isObj = o => Object.prototype.toString.call(o) === '[object Object]';
 
+const lc = window.location;
 const xhrPool = [],
       ArrayBufferView = Object.getPrototypeOf(Object.getPrototypeOf(new Uint8Array())).constructor,
       MIME = {
@@ -275,7 +276,7 @@ function getResponse(xhr, key) {
 
 function ajax(options) {
   let {
-    url = location.href,
+    url = lc.href,
     method = 'GET',
     contentType: reqCtype,
     beforeSend,
@@ -315,7 +316,8 @@ function ajax(options) {
 
   const slz = isFn(serialize) ? serialize : isFn(globalSerialize) ? globalSerialize : defaultSerialize,
         dslz = isFn(deserialize) ? deserialize : isFn(globalDeserialize) ? globalDeserialize : defaultDeserialize,
-        protocol = /^([\w-]+:)\/\//.exec(url)[1],
+        maybeProtocol = /^([\w-]+:)\/\//.exec(url),
+        protocol = maybeProtocol ? maybeProtocol[1] : /^(https?):\/\//.exec(lc.href)[1],
         xhr = xhrFactory(),
         hasCompleteCb = isFn(complete),
         hasErrorCb = isFn(error),
