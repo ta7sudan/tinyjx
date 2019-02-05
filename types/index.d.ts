@@ -38,7 +38,6 @@ interface RequestOptions {
 	beforeSend?(xhr: XMLHttpRequest, options: AsyncOptions): boolean | void;
 	complete?(xhr: XMLHttpRequest, status: string): void;
 	dataType?: string;
-	error?(err: Error, xhr: XMLHttpRequest, event: UIEvent): void;
 	headers?: object;
 	mimeType?: string;
 	username?: string;
@@ -62,11 +61,13 @@ interface NoBodyMethodOptions extends BodyMethodOptions {
 interface AsyncOptions extends NoBodyMethodOptions {
 	url?: string;
 	method?: HTTPMethod;
+	error?(err: Error, data: any, xhr: XMLHttpRequest, event: UIEvent): void;
 }
 interface SyncOptions extends RequestOptions {
 	url?: string;
 	method?: HTTPMethod;
 	data?: any;
+	error?(err: Error, xhr: XMLHttpRequest, event: UIEvent): void;
 }
 interface JsonpOptions {
 	url: string;
