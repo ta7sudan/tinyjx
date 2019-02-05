@@ -520,15 +520,16 @@
 
     xhr.onreadystatechange = function (e) {
       if (this.readyState === 4) {
+        var resCtype = this.getResponseHeader('Content-Type'); // 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
+
+        var resData = dslz({
+          data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
+          contentType: resCtype,
+          acceptType: acceptType
+        });
+
         if (this.status >= 200 && this.status < 300 || this.status == 304 || this.status == 0 && protocol == 'file:') {
-          var resCtype = this.getResponseHeader('Content-Type'); // 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
-
-          var resData = dslz({
-            data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
-            contentType: resCtype,
-            acceptType: acceptType
-          }); // 异常直接抛
-
+          // 异常直接抛
           hasSuccessCb && success(resData, this, e);
           hasCompleteCb && complete(this, 'success');
         } else if (this.status !== 0) {
@@ -544,7 +545,7 @@
 
           if (hasErrorCb) {
             errCalled = true;
-            error(new Error("Remote server error. Request URL: " + this.requestURL + ", Status code: " + this.status + ", message: " + this.statusText + ", response: " + this.responseText + "."), this, e);
+            error(new Error("Remote server error. Request URL: " + this.requestURL + ", Status code: " + this.status + ", message: " + this.statusText + ", response: " + this.responseText + "."), resData, this, e);
           }
 
           if (hasCompleteCb) {
@@ -563,7 +564,7 @@
       }
 
       if (!errCalled && hasErrorCb) {
-        error(new Error("Network error or browser restricted. Request URL: " + this.requestURL + ", Status code: " + this.status), this, e);
+        error(new Error("Network error or browser restricted. Request URL: " + this.requestURL + ", Status code: " + this.status), undefined, this, e);
       }
 
       if (!completeCalled && hasCompleteCb) {

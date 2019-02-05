@@ -94,7 +94,7 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 * `success(data, xhr, event)`: `<Function>`, when request succeeds
 
-* `error(err, xhr, event)`: `<Function>`, when error occurred
+* `error(err, data, xhr, event)`: `<Function>`, when error occurred
 
 * `complete(xhr, status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
 
