@@ -94,7 +94,7 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 * `success(data, xhr, event)`: `<Function>`, when request succeeds
 
-* `error(err, xhr, event)`: `<Function>`, when error occurred
+* `error(err, data, xhr, event)`: `<Function>`, when error occurred
 
 * `complete(xhr, status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
 
@@ -102,11 +102,11 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 * `serialize`: `<Function>`, specifies a serialize method for this request, returns an object which contains `url` and `data`. `options` contains: 
 
-  - `data`: raw data in `AsyncOptions`/`SyncOptions`
+  - `data`: raw data in `AsyncOptions`
   - `url`: `<string>`, request URL
   - `method`: `<string>`, HTTP method of request
   - `contentType`: `<string>`, MIME type of `data` 
-  - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
+  - `cache`: `<boolean>`, `cache` in `AsyncOptions`, allow browser to cache responses
 
 
 
@@ -181,11 +181,11 @@ Returns `undefined`.
 
 - `pool`: `<number> | <boolean>`, specifies the size of xhr pool, default `false`, will not use xhr pool. If `true`, default size is 5
 - `serialize(options)`: `<Function>`, specifies a serialize method for all requests, returns an object which contains `url` and `data`. `options` contains: 
-  - `data`: raw data in `AsyncOptions`/`SyncOptions`
+  - `data`: raw data in `AsyncOptions`
   - `url`: `<string>`, request URL
   - `method`: `<string>`, HTTP method of request
   - `contentType`: `<string>`, MIME type of `data` 
-  - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
+  - `cache`: `<boolean>`, `cache` in `AsyncOptions`, allow browser to cache responses
 - `deserialize(options)`: `<Function>`, specifies a deserialize method for all responses, returns anything what you want which will be the `data` of `success` callback. `options` contains: 
   - `data`: raw data in response, may be `xhr.responseXML`, `xhr.response` or `xhr.responseText`
   - `contentType`: `Content-Type` header of response
