@@ -38,7 +38,7 @@ interface RequestOptions {
 	beforeSend?(xhr: XMLHttpRequest, options: AsyncOptions): boolean | void;
 	complete?(xhr: XMLHttpRequest, status: string): void;
 	dataType?: string;
-	error?(err: Error, xhr: XMLHttpRequest, event: UIEvent): void;
+	error?(err: Error, data: any, xhr: XMLHttpRequest, event: UIEvent): void;
 	headers?: object;
 	mimeType?: string;
 	username?: string;
