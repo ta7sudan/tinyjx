@@ -1,6 +1,8 @@
+import typescript from 'rollup-plugin-typescript2';
 import babel from 'rollup-plugin-babel';
 import replace from 'rollup-plugin-replace';
 import minify from 'rollup-plugin-babel-minify';
+import { relative } from 'path';
 import { browser, module, name, version, license, author, homepage } from './package.json';
 
 /**
@@ -16,12 +18,20 @@ const banner = `/**
  * @License: ${license}
  */`;
 
+/**
+ * 虽然讲babel其实已经没必要, 但是建议还是留个babel,
+ * 在某些时候会有些帮助...也不差这点编译时间
+ */
 export default [
 	{
-		input: 'src/index.js',
+		input: 'src/index.ts',
 		plugins: [
+			typescript({
+				tsconfig: 'tsconfig.json',
+				useTsconfigDeclarationDir: true
+			}),
 			replace({
-				DEBUG: JSON.stringify(false)
+				DEBUG: JSON.stringify(process.env.NODE_ENV !== 'production')
 			}),
 			babel({
 				exclude: 'node_modules/**'
@@ -47,10 +57,14 @@ export default [
 		]
 	},
 	{
-		input: 'src/index.js',
+		input: 'src/index.ts',
 		plugins: [
+			typescript({
+				tsconfig: 'tsconfig.json',
+				useTsconfigDeclarationDir: true
+			}),
 			replace({
-				DEBUG: JSON.stringify(false)
+				DEBUG: JSON.stringify(process.env.NODE_ENV !== 'production')
 			}),
 			babel({
 				exclude: 'node_modules/**'
@@ -69,7 +83,7 @@ export default [
 			format: 'umd',
 			sourcemap: true,
 			// sourcemap生成之后在devtools本来看到的文件是src/index.js, 这个选项可以变成tinyjx.js
-			sourcemapPathTransform: () => 'tinyjx.js'
+			sourcemapPathTransform: path => ~path.indexOf('index') ? 'tinyjx.ts' : relative('src', path)
 		}
 	}
 ];
