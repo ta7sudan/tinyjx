@@ -74,7 +74,7 @@ interface JsonpOptions {
 }
 declare type XhrEvents = 'onloadstart' | 'onprogress' | 'onabort' | 'onerror' | 'onload' | 'ontimeout' | 'onloadend' | 'onreadystatechange';
 declare type Callable = (...args: Array<any>) => any;
-declare type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS';
+declare type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
 declare type Serialize = (options: SerializeOptions) => SerializeResult;
 declare type Deserialize = (options: DeserializeOptions) => any;
 declare type XhrEventsObj = {

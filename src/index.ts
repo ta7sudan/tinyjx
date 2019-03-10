@@ -94,7 +94,7 @@ type ResponseCategory = 'responseXML' | 'response' | 'responseText';
 
 type Callable = (...args: Array<any>) => any;
 
-type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS';
+type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
 
 type Serialize = (options: SerializeOptions) => SerializeResult;
 
