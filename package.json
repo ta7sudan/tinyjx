@@ -1,6 +1,6 @@
 {
   "name": "tinyjx",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A tiny http client for browser",
   "main": "dist/tinyjx.umd.js",
   "module": "dist/tinyjx.esm.js",
