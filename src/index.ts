@@ -1,30 +1,30 @@
 /* global DEBUG */
 declare const DEBUG: boolean;
 
-interface SerializeOptions {
+export interface SerializeOptions {
 	data: any;
 	method: HTTPMethod;
 	contentType?: string;
 	url: string;
 	cache: boolean;
 }
-interface SerializeResult {
+export interface SerializeResult {
 	url: string;
 	data: any;
 }
-interface DeserializeOptions {
+export interface DeserializeOptions {
 	data: any;
 	contentType: string | null | undefined;
 	acceptType: string;
 }
 
-interface ConfigOptions {
+export interface ConfigOptions {
 	pool?: number | boolean;
 	serialize?: Serialize;
 	deserialize?: Deserialize;
 }
 
-interface RequestOptions {
+export interface NoBodyMethodOptions {
 	contentType?: string;
 	beforeSend?(xhr: CustomXMLHttpRequest, options: AsyncOptions): boolean | void;
 	complete?(xhr: XMLHttpRequest, status: string): any;
@@ -47,11 +47,11 @@ interface RequestOptions {
 	withCredentials?: boolean;
 }
 
-interface BodyMethodOptions extends RequestOptions {
+export interface BodyMethodOptions extends NoBodyMethodOptions {
 	data?: any;
 }
 
-interface AsyncOptions extends BodyMethodOptions {
+export interface AsyncOptions extends BodyMethodOptions {
 	url?: string;
 	method?: HTTPMethod;
 }
@@ -63,7 +63,7 @@ interface CustomXMLHttpRequest extends XMLHttpRequest {
 	requestURL?: string;
 }
 
-interface MIMEType {
+export interface MIMEType {
 	json: string;
 	form: string;
 	html: string;
@@ -75,7 +75,7 @@ interface KVObject {
 	[k: string]: any;
 }
 
-interface JsonpOptions {
+export interface JsonpOptions {
 	url: string;
 	cache?: boolean;
 	crossorigin?: string;
@@ -94,11 +94,11 @@ type ResponseCategory = 'responseXML' | 'response' | 'responseText';
 
 type Callable = (...args: Array<any>) => any;
 
-type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
+export type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
 
-type Serialize = (options: SerializeOptions) => SerializeResult;
+export type Serialize = (options: SerializeOptions) => SerializeResult;
 
-type Deserialize = (options: DeserializeOptions) => any;
+export type Deserialize = (options: DeserializeOptions) => any;
 
 type XhrEventsObj = {
 	[k in XhrEvents]: Callable
@@ -629,7 +629,7 @@ export function config({ pool = false, serialize, deserialize }: ConfigOptions =
 
 export { ajax, jsonp };
 
-export function get(url: string, opts: RequestOptions) {
+export function get(url: string, opts: NoBodyMethodOptions) {
 	return ajax({
 		...opts,
 		url,
@@ -637,7 +637,7 @@ export function get(url: string, opts: RequestOptions) {
 	});
 }
 
-export function head(url: string, opts: RequestOptions) {
+export function head(url: string, opts: NoBodyMethodOptions) {
 	return ajax({
 		...opts,
 		url,

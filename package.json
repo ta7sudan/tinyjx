@@ -71,7 +71,7 @@
   "nyc": {
     "cache": true,
     "include": [
-      "src/**/*.js"
+      "src/**/*.ts"
     ]
   },
   "homepage": "https://github.com/ta7sudan/tinyjx#readme",
