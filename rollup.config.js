@@ -34,7 +34,8 @@ export default [
 				DEBUG: JSON.stringify(process.env.NODE_ENV !== 'production')
 			}),
 			babel({
-				exclude: 'node_modules/**'
+				exclude: 'node_modules/**',
+				extensions: ['.js', '.ts']
 			})
 		],
 		treeshake: {
@@ -67,7 +68,8 @@ export default [
 				DEBUG: JSON.stringify(process.env.NODE_ENV !== 'production')
 			}),
 			babel({
-				exclude: 'node_modules/**'
+				exclude: 'node_modules/**',
+				extensions: ['.js', '.ts']
 			}),
 			minify({
 				comments: false
