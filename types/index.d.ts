@@ -1,3 +1,6 @@
+export interface Abortable {
+    abort: () => void;
+}
 export interface SerializeOptions {
     data: any;
     method: HTTPMethod;
@@ -21,15 +24,16 @@ export interface ConfigOptions {
 }
 export interface NoBodyMethodOptions {
     contentType?: string;
-    beforeSend?(xhr: CustomXMLHttpRequest, options: AsyncOptions): boolean | void;
+    beforeSend?(xhr: CustomXMLHttpRequest, options: AjaxOptions): boolean | void;
     complete?(xhr: XMLHttpRequest, status: string): any;
     dataType?: string;
-    error?(err: Error, data: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
+    recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
+    unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
     headers?: KVObject;
     mimeType?: keyof MIMEType;
     username?: string;
     password?: string;
-    success?(data: any, xhr: XMLHttpRequest, event: Event): any;
+    success?(resData: any, xhr: XMLHttpRequest, event: Event): any;
     events?: XhrEventsObj;
     uploadEvents?: XhrEventsObj;
     cache?: boolean;
@@ -43,7 +47,7 @@ export interface NoBodyMethodOptions {
 export interface BodyMethodOptions extends NoBodyMethodOptions {
     data?: any;
 }
-export interface AsyncOptions extends BodyMethodOptions {
+export interface AjaxOptions extends BodyMethodOptions {
     url?: string;
     method?: HTTPMethod;
 }
@@ -77,34 +81,18 @@ declare type Callable = (...args: Array<any>) => any;
 export declare type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
 export declare type Serialize = (options: SerializeOptions) => SerializeResult;
 export declare type Deserialize = (options: DeserializeOptions) => any;
-declare type XhrEventsObj = {
+export declare type XhrEventsObj = {
     [k in XhrEvents]: Callable;
 };
 declare function jsonp(opts: JsonpOptions): void;
-declare function ajax(opts: AsyncOptions): {
-    abort(): void;
-};
+declare function ajax(opts: AjaxOptions): Abortable;
 export declare function config({ pool, serialize, deserialize }?: ConfigOptions): void;
 export { ajax, jsonp };
-export declare function get(url: string, opts: NoBodyMethodOptions): {
-    abort(): void;
-};
-export declare function head(url: string, opts: NoBodyMethodOptions): {
-    abort(): void;
-};
-export declare function post(url: string, data: any, opts: BodyMethodOptions): {
-    abort(): void;
-};
-export declare function put(url: string, data: any, opts: BodyMethodOptions): {
-    abort(): void;
-};
-export declare function del(url: string, data: any, opts: BodyMethodOptions): {
-    abort(): void;
-};
-export declare function patch(url: string, data: any, opts: BodyMethodOptions): {
-    abort(): void;
-};
-export declare function options(url: string, data: any, opts: BodyMethodOptions): {
-    abort(): void;
-};
+export declare function get(url: string, opts: NoBodyMethodOptions): Abortable;
+export declare function head(url: string, opts: NoBodyMethodOptions): Abortable;
+export declare function post(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function put(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function del(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function patch(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function options(url: string, data: any, opts: BodyMethodOptions): Abortable;
 //# sourceMappingURL=index.d.ts.map

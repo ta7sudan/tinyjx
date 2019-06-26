@@ -1,6 +1,10 @@
 /* global DEBUG */
 declare const DEBUG: boolean;
 
+export interface Abortable {
+	abort: () => void;
+}
+
 export interface SerializeOptions {
 	data: any;
 	method: HTTPMethod;
@@ -26,16 +30,17 @@ export interface ConfigOptions {
 
 export interface NoBodyMethodOptions {
 	contentType?: string;
-	beforeSend?(xhr: CustomXMLHttpRequest, options: AsyncOptions): boolean | void;
+	beforeSend?(xhr: CustomXMLHttpRequest, options: AjaxOptions): boolean | void;
 	complete?(xhr: XMLHttpRequest, status: string): any;
 	dataType?: string;
 	// 不允许取得_active和requestURL, 所以用XMLHttpRequest而不是CustomXMLHttpRequest
-	error?(err: Error, data: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
+	recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
+	unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
 	headers?: KVObject;
 	mimeType?: keyof MIMEType;
 	username?: string;
 	password?: string;
-	success?(data: any, xhr: XMLHttpRequest, event: Event): any;
+	success?(resData: any, xhr: XMLHttpRequest, event: Event): any;
 	events?: XhrEventsObj;
 	uploadEvents?: XhrEventsObj;
 	cache?: boolean;
@@ -51,7 +56,7 @@ export interface BodyMethodOptions extends NoBodyMethodOptions {
 	data?: any;
 }
 
-export interface AsyncOptions extends BodyMethodOptions {
+export interface AjaxOptions extends BodyMethodOptions {
 	url?: string;
 	method?: HTTPMethod;
 }
@@ -100,7 +105,7 @@ export type Serialize = (options: SerializeOptions) => SerializeResult;
 
 export type Deserialize = (options: DeserializeOptions) => any;
 
-type XhrEventsObj = {
+export type XhrEventsObj = {
 	[k in XhrEvents]: Callable
 };
 
@@ -168,7 +173,7 @@ function createXhr(): CustomXMLHttpRequest {
 	return xhr as CustomXMLHttpRequest;
 }
 
-function resetXhr(xhr: CustomXMLHttpRequest) {
+function resetXhr(xhr: CustomXMLHttpRequest): void {
 	// responseType, withCredentials以及header相关的会在open后重置
 	xhr._active = false;
 	// 可能是同步请求那就不能设置timeout
@@ -177,9 +182,9 @@ function resetXhr(xhr: CustomXMLHttpRequest) {
 		xhr.requestURL = '';
 	// tslint:disable-next-line
 	} catch (e) { }
-	events.forEach(v => (xhr[v] = null));
+	events.forEach((v: XhrEvents) => (xhr[v] = null));
 	// 这里不建议给XMLHttpRequestUpload patch一个索引类型, 可能影响到其他地方
-	xhr.upload && events.forEach(v => ((xhr.upload as any)[v] = null));
+	xhr.upload && events.forEach((v: XhrEvents) => ((xhr.upload as any)[v] = null));
 }
 
 function xhrFactory(): CustomXMLHttpRequest {
@@ -196,7 +201,7 @@ function querystring(obj: any): string {
 	if (isObj(obj)) {
 		return Object.keys(obj)
 			.map(
-				k =>
+				(k: string) =>
 					Array.isArray(obj[k])
 						? obj[k]
 							.map((v: any) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
@@ -209,7 +214,7 @@ function querystring(obj: any): string {
 	}
 }
 
-const defaultSerialize: Serialize = ({ data, method, contentType = MIME.json, url, cache }) => {
+const defaultSerialize: Serialize = ({ data, method, contentType = MIME.json, url, cache }: SerializeOptions): SerializeResult => {
 	if (!cache) {
 		// 字符串不可变, 所以这里懒得起名了, 赋值url其实不影响外部
 		// tslint:disable-next-line
@@ -251,9 +256,9 @@ const defaultSerialize: Serialize = ({ data, method, contentType = MIME.json, ur
 		url,
 		data: resultData
 	};
-}
+};
 
-const defaultDeserialize: Deserialize = ({ data, contentType, acceptType }) => {
+const defaultDeserialize: Deserialize = ({ data, contentType, acceptType }: DeserializeOptions): any  => {
 	let rst = null;
 	if (isStr(data) && (isStr(contentType) && isJSON(contentType) || isJSON(acceptType))) {
 		try {
@@ -266,25 +271,25 @@ const defaultDeserialize: Deserialize = ({ data, contentType, acceptType }) => {
 		rst = data;
 	}
 	return rst;
-}
+};
 
-function setHeaders(xhr: CustomXMLHttpRequest, headers: any) {
+function setHeaders(xhr: CustomXMLHttpRequest, headers: any): void {
 	if (isObj(headers)) {
-		Object.keys(headers).forEach(k => xhr.setRequestHeader(k, headers[k]));
+		Object.keys(headers).forEach((k: string) => xhr.setRequestHeader(k, headers[k]));
 	}
 }
 
-function setEvents(target: CustomXMLHttpRequest | XMLHttpRequestUpload, evts?: XhrEventsObj) {
+function setEvents(target: CustomXMLHttpRequest | XMLHttpRequestUpload, evts?: XhrEventsObj): void {
 	if (isObj(evts) && target) {
 		// 不用addEventListener是它不方便reset
 		Object.keys(evts)
-			.filter(k => events.includes(k as XhrEvents))
-			.forEach(k => (target as any)[k] = evts[k as XhrEvents]);
+			.filter((k: string): k is XhrEvents => events.includes(k as XhrEvents))
+			.forEach((k: XhrEvents) => (target as XhrEventsObj)[k] = evts[k]);
 	}
 }
 
 
-function jsonp(opts: JsonpOptions) {
+function jsonp(opts: JsonpOptions): void {
 	let {
 		url,
 		/* tslint:disable */
@@ -332,7 +337,7 @@ function jsonp(opts: JsonpOptions) {
 
 	const w = window as any;
 	if (!w[cbName] || !w[cbName].hasHook) {
-		w[cbName] = function (...args: Array<any>) {
+		w[cbName] = function (...args: Array<any>): void {
 			// 放前面, 防止后面的callback抛异常导致删不掉
 			if (!hasCustomCbName) {
 				delete w[cbName];
@@ -363,7 +368,7 @@ function jsonp(opts: JsonpOptions) {
 		w[cbName].hasHook = true;
 	}
 
-	script.onerror = function (e) {
+	script.onerror = function (e: string | Event): void {
 		document.body.removeChild(script);
 		if (!hasCustomCbName) {
 			delete w[cbName];
@@ -376,7 +381,7 @@ function jsonp(opts: JsonpOptions) {
 		hasCompleteCb && complete!('error');
 	};
 
-	script.onload = () => setTimeout(() => document.body.removeChild(script), 3000);
+	script.onload = (): ReturnType<typeof setTimeout> => setTimeout(() => document.body.removeChild(script), 3000);
 
 	crossorigin && (script.crossOrigin = crossorigin);
 	script.src = url;
@@ -402,7 +407,7 @@ function getResponse(xhr: CustomXMLHttpRequest, key: ResponseCategory): any {
 }
 
 
-function ajax(opts: AsyncOptions) {
+function ajax(opts: AjaxOptions): Abortable {
 	let {
 		url = lc.href,
 		method = 'GET' as HTTPMethod,
@@ -412,7 +417,8 @@ function ajax(opts: AsyncOptions) {
 		data: reqRawData,
 		beforeSend,
 		complete,
-		error,
+		recoverableError,
+		unrecoverableError,
 		headers,
 		mimeType,
 		responseType = '' as XMLHttpRequestResponseType,
@@ -462,7 +468,8 @@ function ajax(opts: AsyncOptions) {
 		protocol = maybeProtocol ? maybeProtocol[1] : hrefProtocol ? hrefProtocol[1] : null,
 		xhr = xhrFactory(),
 		hasCompleteCb = isFn(complete),
-		hasErrorCb = isFn(error),
+		hasRecoverableErrorCb = isFn(recoverableError),
+		hasUnrecoverableErrorCb = isFn(unrecoverableError),
 		hasSuccessCb = isFn(success);
 
 	let reqData: any,
@@ -500,12 +507,12 @@ function ajax(opts: AsyncOptions) {
 	responseType && (xhr.responseType = responseType);
 	timeout && (xhr.timeout = timeout);
 	if (isFn(ontimeout)) {
-		xhr.ontimeout = function (e) {
+		xhr.ontimeout = function (e: ProgressEvent): void {
 			ontimeout!(e);
 			hasCompleteCb && complete!(this, 'timeout');
 		};
 	} else if (timeout && !isFn(xhr.ontimeout)) {
-		xhr.ontimeout = function () {
+		xhr.ontimeout = function (): void {
 			if (hasCompleteCb) {
 				complete!(this, 'timeout');
 			} else {
@@ -518,17 +525,17 @@ function ajax(opts: AsyncOptions) {
 	// loadend无论同步还是异步请求, 无论前面的事件是否抛异常, 它都会执行
 	if (isFn(xhr.onloadend)) {
 		const originalLoadend = xhr.onloadend;
-		xhr.onloadend = function (e) {
+		xhr.onloadend = function (e: ProgressEvent): void {
 			resetXhr(this as CustomXMLHttpRequest);
 			originalLoadend.call(this, e);
 		};
 	} else {
-		xhr.onloadend = function () {
+		xhr.onloadend = function (): void {
 			resetXhr(this as CustomXMLHttpRequest);
 		};
 	}
 	// 覆盖掉用户自定义onreadystatechange
-	xhr.onreadystatechange = function (e) {
+	xhr.onreadystatechange = function (e: Event): void {
 		if (this.readyState === 4) {
 			const resCtype = this.getResponseHeader('Content-Type');
 			// 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
@@ -548,7 +555,7 @@ function ajax(opts: AsyncOptions) {
 				hasCompleteCb && complete!(this, 'success');
 			} else if (this.status !== 0) {
 				// 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
-				if (!hasErrorCb && !hasCompleteCb) {
+				if (!hasRecoverableErrorCb && !hasCompleteCb) {
 					throw new Error(
 						`Remote server error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`
 					);
@@ -558,9 +565,9 @@ function ajax(opts: AsyncOptions) {
 				// 但是不加个心里不踏实...总感觉会不会有浏览器没按规范实现
 				// 不过知名的库页都没监听onerror, 那说明应该是都按规范实现了的
 				// 但是我要加!!!
-				if (hasErrorCb) {
+				if (hasRecoverableErrorCb) {
 					errCalled = true;
-					error!(new Error(`Remote server error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
+					recoverableError!(new Error(`Remote server error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
 				}
 				if (hasCompleteCb) {
 					completeCalled = true;
@@ -571,13 +578,13 @@ function ajax(opts: AsyncOptions) {
 	};
 
 	// 覆盖
-	xhr.onerror = function (e) {
+	xhr.onerror = function (e: ProgressEvent): void {
 		// 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
-		if (!hasErrorCb && !hasCompleteCb) {
+		if (!hasUnrecoverableErrorCb && !hasCompleteCb) {
 			throw new Error(`An error occurred, maybe crossorigin error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}.`);
 		}
-		if (!errCalled && hasErrorCb) {
-			error!(new Error(`Network error or browser restricted. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}`), undefined, this, e);
+		if (!errCalled && hasUnrecoverableErrorCb) {
+			unrecoverableError!(new Error(`Network error or browser restricted. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}`), this, e);
 		}
 		if (!completeCalled && hasCompleteCb) {
 			complete!(this, 'error');
@@ -606,13 +613,13 @@ function ajax(opts: AsyncOptions) {
 	}
 	// 不暴露xhr
 	return {
-		abort() {
+		abort(): void {
 			xhr.abort();
 		}
 	};
 }
 
-export function config({ pool = false, serialize, deserialize }: ConfigOptions = {}) {
+export function config({ pool = false, serialize, deserialize }: ConfigOptions = {}): void {
 	if (pool) {
 		xhrPool.length = 0;
 		let poolSize = typeof pool === 'number' ? pool : 5;
@@ -629,7 +636,7 @@ export function config({ pool = false, serialize, deserialize }: ConfigOptions =
 
 export { ajax, jsonp };
 
-export function get(url: string, opts: NoBodyMethodOptions) {
+export function get(url: string, opts: NoBodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,
@@ -637,7 +644,7 @@ export function get(url: string, opts: NoBodyMethodOptions) {
 	});
 }
 
-export function head(url: string, opts: NoBodyMethodOptions) {
+export function head(url: string, opts: NoBodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,
@@ -645,7 +652,7 @@ export function head(url: string, opts: NoBodyMethodOptions) {
 	});
 }
 
-export function post(url: string, data: any, opts: BodyMethodOptions) {
+export function post(url: string, data: any, opts: BodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,
@@ -654,7 +661,7 @@ export function post(url: string, data: any, opts: BodyMethodOptions) {
 	});
 }
 
-export function put(url: string, data: any, opts: BodyMethodOptions) {
+export function put(url: string, data: any, opts: BodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,
@@ -663,7 +670,7 @@ export function put(url: string, data: any, opts: BodyMethodOptions) {
 	});
 }
 
-export function del(url: string, data: any, opts: BodyMethodOptions) {
+export function del(url: string, data: any, opts: BodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,
@@ -672,7 +679,7 @@ export function del(url: string, data: any, opts: BodyMethodOptions) {
 	});
 }
 
-export function patch(url: string, data: any, opts: BodyMethodOptions) {
+export function patch(url: string, data: any, opts: BodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,
@@ -681,7 +688,7 @@ export function patch(url: string, data: any, opts: BodyMethodOptions) {
 	});
 }
 
-export function options(url: string, data: any, opts: BodyMethodOptions) {
+export function options(url: string, data: any, opts: BodyMethodOptions): Abortable {
 	return ajax({
 		...opts,
 		url,

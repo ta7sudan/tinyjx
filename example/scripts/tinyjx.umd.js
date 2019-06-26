@@ -309,7 +309,8 @@
 	    data: reqRawData,
 	    beforeSend,
 	    complete,
-	    error,
+	    recoverableError,
+	    unrecoverableError,
 	    headers,
 	    mimeType,
 	    responseType = '',
@@ -349,7 +350,8 @@
 	        protocol = maybeProtocol ? maybeProtocol[1] : hrefProtocol ? hrefProtocol[1] : null,
 	        xhr = xhrFactory(),
 	        hasCompleteCb = isFn(complete),
-	        hasErrorCb = isFn(error),
+	        hasRecoverableErrorCb = isFn(recoverableError),
+	        hasUnrecoverableErrorCb = isFn(unrecoverableError),
 	        hasSuccessCb = isFn(success);
 	  let reqData,
 	      errCalled = false,
@@ -439,7 +441,7 @@
 	        hasCompleteCb && complete(this, 'success');
 	      } else if (this.status !== 0) {
 	        // 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
-	        if (!hasErrorCb && !hasCompleteCb) {
+	        if (!hasRecoverableErrorCb && !hasCompleteCb) {
 	          throw new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`);
 	        } // 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
 	        // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/status
@@ -448,9 +450,9 @@
 	        // 但是我要加!!!
 
 
-	        if (hasErrorCb) {
+	        if (hasRecoverableErrorCb) {
 	          errCalled = true;
-	          error(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
+	          recoverableError(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
 	        }
 
 	        if (hasCompleteCb) {
@@ -464,12 +466,12 @@
 
 	  xhr.onerror = function (e) {
 	    // 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
-	    if (!hasErrorCb && !hasCompleteCb) {
+	    if (!hasUnrecoverableErrorCb && !hasCompleteCb) {
 	      throw new Error(`An error occurred, maybe crossorigin error. Request URL: ${this.requestURL}, Status code: ${this.status}.`);
 	    }
 
-	    if (!errCalled && hasErrorCb) {
-	      error(new Error(`Network error or browser restricted. Request URL: ${this.requestURL}, Status code: ${this.status}`), undefined, this, e);
+	    if (!errCalled && hasUnrecoverableErrorCb) {
+	      unrecoverableError(new Error(`Network error or browser restricted. Request URL: ${this.requestURL}, Status code: ${this.status}`), this, e);
 	    }
 
 	    if (!completeCalled && hasCompleteCb) {
