@@ -241,7 +241,7 @@
 // };
 // tinyjx.ajax({
 // 	url: 'http://127.0.0.1:8080/ajaxa',
-// 	error(err, xhr, e) {
+// 	recoverableError(err, xhr, e) {
 // 		console.log(err.message);
 // 		console.log(xhr);
 // 		console.log(e);
@@ -345,7 +345,7 @@
 // 		测试: '测试',
 // 		aaa: 'bbb'
 // 	},
-// 	error(err, xhr, e) {
+// 	unrecoverableError(err, xhr, e) {
 // 		console.log(err);
 // 		console.log(xhr);
 // 		console.log(e);
@@ -366,7 +366,7 @@ tinyjx.ajax({
 		console.log(xhr);
 		console.log(e);
 	},
-	error(err, xhr, e) {
+	unrecoverableError(err, xhr, e) {
 		console.log(err);
 		console.log(xhr);
 		console.log(e);

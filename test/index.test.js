@@ -613,8 +613,9 @@ test('ajax with error handled', puppeteerHelper('http://127.0.0.1:8080/test.html
 		return new Promise(rs => {
 			ajax({
 				url: 'http://127.0.0.1:8080/ajaxerr',
-				error(err, xhr, e) {
+				recoverableError(err, resData, xhr, e) {
 					rst.message = err.message;
+					rst.resData = resData;
 					rst.xhr = xhr;
 					rst.e = e;
 					rs(rst);
@@ -622,8 +623,9 @@ test('ajax with error handled', puppeteerHelper('http://127.0.0.1:8080/test.html
 			});
 		});
 	});
-	const { message, xhr, e } = result;
+	const { message, resData, xhr, e } = result;
 	t.regex(message, /Remote server error/);
+	t.true(isObj(resData));
 	t.true(isObj(xhr));
 	t.true(isObj(e));
 });
