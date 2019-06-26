@@ -21,7 +21,7 @@ tinyjx is a tiny http client for browser.
 ## Install
 
 ```shell
-$ npm i -P tinyjx
+$ npm i -P tinyjx@next
 ```
 
 
@@ -49,31 +49,25 @@ ajax({
 
 ## API
 
-### ajax(options: AsyncOptions): Abortable
+### ajax(options: AjaxOptions): Abortable
 
 Returns a `Abortable` object which implemented a `abort()` method like `xhr.abort()`.
 
-#### AsyncOptions: Object
+#### AjaxOptions: Object
 
 * `url`: `<string>`, URL to request
 
 * `method`: `<string>`, HTTP method, case insensitive, default `"GET"`, only `GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` supported.
 
+* `data`: `<any>`, request data, used by `POST`, `PUT`, `PATCH`
+
 * `contentType`: `<string>`, MIME type for request body, also support predefined value `json`, `form`,  `html`, `xml`, `text`, which are `application/json`, `application/x-www-form-urlencoded`, `text/html`, `application/xml`, `text/plain`, default `json`
 
-* `dataType`: `<string>`, MIME type expect from ther server, will be treat as `Accept`, default `json`
+* `dataType`: `<string>`, MIME type expect from the remote server, will be treat as `Accept`, default `json`
 
 * `headers`: request headers, which is a key-value object. eg. `{'Content-Type': 'text/plain'}`
 
-* `cache`: allow browser to cache responses, default `true`
-
-* `responseType`: specifies the `xhr.responseType`
-
 * `mimeType`: specifies the parameters of `xhr.overrideMimeType()`
-
-* `withCredentials`: specifies the `xhr.withCredentials`
-
-* `timeout`: specifies the `xhr.timeout`
 
 * `username`: user name to use for authentication
 
@@ -90,11 +84,21 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 * `uploadEvents`: events of [XMLHttpRequestUpload](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/upload)
 
-* `beforeSend(xhr, options)`: `<Function>`, before the request is sent. `options` is `AsyncOptions`.  Return `false` will cancel the request
+* `cache`: allow browser to cache responses, default `true`
 
-* `success(data, xhr, event)`: `<Function>`, when request succeeds
+* `responseType`: specifies the `xhr.responseType`
 
-* `error(err, data, xhr, event)`: `<Function>`, when error occurred
+* `timeout`: specifies the `xhr.timeout`
+
+* `withCredentials`: specifies the `xhr.withCredentials`
+
+* `beforeSend(xhr, options)`: `<Function>`, before the request is sent. `options` is `AjaxOptions`.  Return `false` will cancel the request
+
+* `success(respData, xhr, event)`: `<Function>`, when request succeeds
+
+* `recoverableError(err, respData, xhr, event)`: `<Function>`, when request error occurred, such as response status is 404, 500, which means browser received the response, but an error occurred from remote server
+
+* `unrecoverableError(err, xhr, event)`: `<Function>`, different from `recoverableError`, which means request is failed or browser didn't receive any response, such as cross origin error or network error
 
 * `complete(xhr, status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
 
@@ -102,11 +106,11 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 * `serialize`: `<Function>`, specifies a serialize method for this request, returns an object which contains `url` and `data`. `options` contains: 
 
-  - `data`: raw data in `AsyncOptions`/`SyncOptions`
+  - `data`: raw data(`data`) in `AjaxOptions`
   - `url`: `<string>`, request URL
   - `method`: `<string>`, HTTP method of request
   - `contentType`: `<string>`, MIME type of `data` 
-  - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
+  - `cache`: `<boolean>`, `cache` in `AjaxOptions`, allow browser to cache response
 
 
 
@@ -156,37 +160,6 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 
 
-### ajaxSync(options: SyncOptions): any
-
-Returns response data. eg.
-
-```javascript
-const data = ajaxSync({
-	url: 'http://127.0.0.1:8080/ajax'
-});
-console.log(data);
-// {hello: 'world'}
-```
-
-But also support called as callback like.
-
-```javascript
-ajaxSync({
-	url: 'http://127.0.0.1:8080/ajax',
-	success(data) {
-		console.log(data);
-	}
-});
-```
-
-Note: **All callbacks in synchronous request will be called synchronously.**
-
-#### SyncOptions: Object
-
-Similar with `AsyncOptions`, but doesn't support `responseType`, `timeout`, `ontimeout`, `withCredentials`.
-
-
-
 ### jsonp(options: JsonpOptions): void
 
 Returns `undefined`.
@@ -212,11 +185,11 @@ Returns `undefined`.
 
 - `pool`: `<number> | <boolean>`, specifies the size of xhr pool, default `false`, will not use xhr pool. If `true`, default size is 5
 - `serialize(options)`: `<Function>`, specifies a serialize method for all requests, returns an object which contains `url` and `data`. `options` contains: 
-  - `data`: raw data in `AsyncOptions`/`SyncOptions`
+  - `data`: raw data in `AjaxOptions`
   - `url`: `<string>`, request URL
   - `method`: `<string>`, HTTP method of request
   - `contentType`: `<string>`, MIME type of `data` 
-  - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
+  - `cache`: `<boolean>`, `cache` in `AjaxOptions`, allow browser to cache responses
 - `deserialize(options)`: `<Function>`, specifies a deserialize method for all responses, returns anything what you want which will be the `data` of `success` callback. `options` contains: 
   - `data`: raw data in response, may be `xhr.responseXML`, `xhr.response` or `xhr.responseText`
   - `contentType`: `Content-Type` header of response
@@ -224,43 +197,43 @@ Returns `undefined`.
 
 
 
-### get(url: string, options: AsyncOptions): Abortable
+### get(url: string, options: AjaxOptions): Abortable
 
 A `GET` request wrapper of `ajax()`.
 
 
 
-### head(url: string, options: AsyncOptions): Abortable
+### head(url: string, options: AjaxOptions): Abortable
 
 A `HEAD` request wrapper of `ajax()`.
 
 
 
-### post(url: string, data: any, options: AsyncOptions): Abortable
+### post(url: string, data: any, options: AjaxOptions): Abortable
 
 A `POST` request wrapper of `ajax()`.
 
 
 
-### put(url: string, data: any, options: AsyncOptions): Abortable
+### put(url: string, data: any, options: AjaxOptions): Abortable
 
 A `PUT` request wrapper of `ajax()`.
 
 
 
-### patch(url: string, data: any, options: AsyncOptions): Abortable
+### patch(url: string, data: any, options: AjaxOptions): Abortable
 
 A `PATCH` request wrapper of `ajax()`.
 
 
 
-### del(url: string, data: any, options: AsyncOptions): Abortable
+### del(url: string, data: any, options: AjaxOptions): Abortable
 
 A `DELETE` request wrapper of `ajax()`.
 
 
 
-### options(url: string, data: any, options: AsyncOptions): Abortable
+### options(url: string, data: any, options: AjaxOptions): Abortable
 
 A `OPTIONS` request wrapper of `ajax()`.
 

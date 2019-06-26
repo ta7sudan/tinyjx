@@ -45,7 +45,9 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 - `success(data, xhr, event)`: `<Function>`, when request succeeds
 
-- `error(err, xhr, event)`: `<Function>`, when error occurred
+- `recoverableError(err, data, xhr, event)`: `<Function>`, when request error occurred, such as response status is 404, 500, which means browser received the response, but an error occurred from remote server
+
+- `unrecoverableError(err, xhr, event)`: `<Function>`, different from `recoverableError`, which means request is failed or browser didn't receive any response, such as cross origin error or network error
 
 - `complete(xhr, status)`: `<Function>`, after `success()` or `error()`, note if `success()` or `error()` throws an error, `complete()` will not be called
 
@@ -53,13 +55,15 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 
 - `serialize`: `<Function>`, specifies a serialize method for this request, returns an object which contains `url` and `data`. `options` contains: 
 
-  - `data`: raw data in `AsyncOptions`/`SyncOptions`
+  - `data`: raw data in `AsyncOptions`
   - `url`: `<string>`, request URL
   - `method`: `<string>`, HTTP method of request
   - `contentType`: `<string>`, MIME type of `data` 
-  - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
+  - `cache`: `<boolean>`, `cache` in `AsyncOptions`, allow browser to cache responses
 
-  ```javascript
+
+
+```javascript
   ajax({
   	url: 'http://127.0.0.1:8080/ajax',
   	data: {
@@ -78,15 +82,16 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
   });
   // The request URL will be http://127.0.0.1:8080/ajax?a=1&b=2
   // with body {"hello": "world"}
-  ```
+```
 
 - `deserialize`: `<Function>`, specifies a deserialize method for all responses, returns anything what you want which will be the `data` of `success` callback. `options` contains: 
-
   - `data`: raw data in response, may be `xhr.responseXML`, `xhr.response` or `xhr.responseText`
   - `contentType`: `Content-Type` header of response
   - `acceptType`: `Accept` of request
 
-  ```javascript
+
+
+```javascript
   ajax({
   	url: 'http://127.0.0.1:8080/ajax',
   	deserialize({data, contentType, acceptType}) {
@@ -99,38 +104,7 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
   		console.log(data); // data changed
   	}
   });
-  ```
-
-
-
-### ajaxSync(options: SyncOptions): any
-
-Returns response data. eg.
-
-```javascript
-const data = ajaxSync({
-	url: 'http://127.0.0.1:8080/ajax'
-});
-console.log(data);
-// {hello: 'world'}
 ```
-
-But also support called as callback like.
-
-```javascript
-ajaxSync({
-	url: 'http://127.0.0.1:8080/ajax',
-    success(data) {
-		console.log(data);
-    }
-});
-```
-
-Note: **All callbacks in synchronous request will be called synchronously.**
-
-#### SyncOptions: Object
-
-Similar with `AsyncOptions`, but doesn't support `responseType`, `timeout`, `ontimeout`, `withCredentials`.
 
 
 
@@ -159,11 +133,11 @@ Returns `undefined`.
 
 - `pool`: `<number> | <boolean>`, specifies the size of xhr pool, default `false`, will not use xhr pool. If `true`, default size is 5
 - `serialize(options)`: `<Function>`, specifies a serialize method for all requests, returns an object which contains `url` and `data`. `options` contains: 
-  - `data`: raw data in `AsyncOptions`/`SyncOptions`
+  - `data`: raw data in `AsyncOptions`
   - `url`: `<string>`, request URL
   - `method`: `<string>`, HTTP method of request
   - `contentType`: `<string>`, MIME type of `data` 
-  - `cache`: `<boolean>`, `cache` in `AsyncOptions`/`SyncOptions`, allow browser to cache responses
+  - `cache`: `<boolean>`, `cache` in `AsyncOptions`, allow browser to cache responses
 - `deserialize(options)`: `<Function>`, specifies a deserialize method for all responses, returns anything what you want which will be the `data` of `success` callback. `options` contains: 
   - `data`: raw data in response, may be `xhr.responseXML`, `xhr.response` or `xhr.responseText`
   - `contentType`: `Content-Type` header of response

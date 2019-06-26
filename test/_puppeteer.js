@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 let browser = null;
-const sourceCode = readFileSync(resolve(__dirname, '../src/index.js'), 'utf8').replace(/export/g, '');
+const sourceCode = readFileSync(resolve(__dirname, '../dist/tinyjx.esm.js'), 'utf8').replace(/export/g, '');
 
 // 其实这里不应该用before和after这样的框架API的,
 // 因为AVA的测试代码引入模块不知道为什么, 会导致多次

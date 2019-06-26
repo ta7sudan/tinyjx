@@ -1,98 +1,98 @@
-interface Abortable {
-	abort(): void;
+export interface Abortable {
+    abort: () => void;
 }
-
-declare enum HTTPMethod {
-	GET = 'GET',
-	POST = 'POST',
-	HEAD = 'HEAD',
-	PUT = 'PUT',
-	PATCH = 'PATCH',
-	DELETE = 'DELETE',
-	OPTIONS = 'OPTIONS',
+export interface SerializeOptions {
+    data: any;
+    method: HTTPMethod;
+    contentType?: string;
+    url: string;
+    cache: boolean;
 }
-interface SerializeOptions {
-	data?: any;
-	method?: HTTPMethod;
-	contentType?: string;
-	url?: string;
-	cache?: boolean;
+export interface SerializeResult {
+    url: string;
+    data: any;
 }
-interface SerializeResult {
-	url: string;
-	data: any;
+export interface DeserializeOptions {
+    data: any;
+    contentType: string | null | undefined;
+    acceptType: string;
 }
-interface DeserializeOptions {
-	data?: any;
-	contentType?: string;
-	acceptType?: string;
+export interface ConfigOptions {
+    pool?: number | boolean;
+    serialize?: Serialize;
+    deserialize?: Deserialize;
 }
-interface Serialize {
-	(options: SerializeOptions): SerializeResult;
+export interface NoBodyMethodOptions {
+    contentType?: string;
+    beforeSend?(xhr: CustomXMLHttpRequest, options: AjaxOptions): boolean | void;
+    complete?(xhr: XMLHttpRequest, status: string): any;
+    dataType?: string;
+    recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
+    unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
+    headers?: KVObject;
+    mimeType?: keyof MIMEType;
+    username?: string;
+    password?: string;
+    success?(resData: any, xhr: XMLHttpRequest, event: Event): any;
+    events?: XhrEventsObj;
+    uploadEvents?: XhrEventsObj;
+    cache?: boolean;
+    serialize?: Serialize;
+    deserialize?: Deserialize;
+    responseType?: XMLHttpRequestResponseType;
+    timeout?: number;
+    ontimeout?(event: ProgressEvent): any;
+    withCredentials?: boolean;
 }
-interface Deserialize {
-	(options: DeserializeOptions): any;
+export interface BodyMethodOptions extends NoBodyMethodOptions {
+    data?: any;
 }
-interface RequestOptions {
-	contentType?: string;
-	beforeSend?(xhr: XMLHttpRequest, options: AsyncOptions): boolean | void;
-	complete?(xhr: XMLHttpRequest, status: string): void;
-	dataType?: string;
-	headers?: object;
-	mimeType?: string;
-	username?: string;
-	password?: string;
-	success?(data: any, xhr: XMLHttpRequest, event: Event);
-	events?: object;
-	uploadEvents?: object;
-	cache?: boolean;
-	serialize?: Serialize;
-	deserialize?: Deserialize;
+export interface AjaxOptions extends BodyMethodOptions {
+    url?: string;
+    method?: HTTPMethod;
 }
-interface BodyMethodOptions extends RequestOptions {
-	responseType?: string;
-	timeout?: number;
-	ontimeout?(event: ProgressEvent): void;
-	withCredentials?: boolean;
+interface CustomXMLHttpRequest extends XMLHttpRequest {
+    _id: number;
+    _active: boolean;
+    requestURL?: string;
 }
-interface NoBodyMethodOptions extends BodyMethodOptions {
-	data?: any;
+export interface MIMEType {
+    json: string;
+    form: string;
+    html: string;
+    xml: string;
+    text: string;
 }
-interface AsyncOptions extends NoBodyMethodOptions {
-	url?: string;
-	method?: HTTPMethod;
-	error?(err: Error, data: any, xhr: XMLHttpRequest, event: UIEvent): void;
+interface KVObject {
+    [k: string]: any;
 }
-interface SyncOptions extends RequestOptions {
-	url?: string;
-	method?: HTTPMethod;
-	data?: any;
-	error?(err: Error, xhr: XMLHttpRequest, event: UIEvent): void;
+export interface JsonpOptions {
+    url: string;
+    cache?: boolean;
+    crossorigin?: string;
+    callbackName?: string;
+    success?(data?: any): any;
+    beforeSend?(url: string, options: JsonpOptions): boolean | void;
+    complete?(status: string): any;
+    error?(err: Error, event: string | UIEvent | Event): any;
 }
-interface JsonpOptions {
-	url: string;
-	cache?: boolean;
-	crossorigin?: string;
-	callbackName?: string;
-	success?(args: any): void;
-	beforeSend?(url: string, options: JsonpOptions): boolean | void;
-	complete?(status: string): void;
-	error?(err: Error, event: UIEvent): void;
-}
-interface ConfigOptions {
-	pool?: number;
-	serialize?: Serialize;
-	deserialize?: Deserialize;
-}
-
-export function config(options: ConfigOptions): void;
-export function ajax(options: AsyncOptions): Abortable;
-export function ajaxSync(options: SyncOptions): any;
-export function jsonp(options: JsonpOptions): void;
-export function get(url: string, options: NoBodyMethodOptions): Abortable;
-export function head(url: string, options: NoBodyMethodOptions): Abortable;
-export function post(url: string, data: any, options: BodyMethodOptions): Abortable;
-export function put(url: string, data: any, options: BodyMethodOptions): Abortable;
-export function patch(url: string, data: any, options: BodyMethodOptions): Abortable;
-export function del(url: string, data: any, options: BodyMethodOptions): Abortable;
-export function options(url: string, data: any, options: BodyMethodOptions): Abortable;
+declare type XhrEvents = 'onloadstart' | 'onprogress' | 'onabort' | 'onerror' | 'onload' | 'ontimeout' | 'onloadend' | 'onreadystatechange';
+declare type Callable = (...args: Array<any>) => any;
+export declare type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
+export declare type Serialize = (options: SerializeOptions) => SerializeResult;
+export declare type Deserialize = (options: DeserializeOptions) => any;
+export declare type XhrEventsObj = {
+    [k in XhrEvents]: Callable;
+};
+declare function jsonp(opts: JsonpOptions): void;
+declare function ajax(opts: AjaxOptions): Abortable;
+export declare function config({ pool, serialize, deserialize }?: ConfigOptions): void;
+export { ajax, jsonp };
+export declare function get(url: string, opts: NoBodyMethodOptions): Abortable;
+export declare function head(url: string, opts: NoBodyMethodOptions): Abortable;
+export declare function post(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function put(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function del(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function patch(url: string, data: any, opts: BodyMethodOptions): Abortable;
+export declare function options(url: string, data: any, opts: BodyMethodOptions): Abortable;
+//# sourceMappingURL=index.d.ts.map
