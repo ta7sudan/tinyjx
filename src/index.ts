@@ -12,10 +12,12 @@ export interface SerializeOptions {
 	url: string;
 	cache: boolean;
 }
+
 export interface SerializeResult {
 	url: string;
 	data: any;
 }
+
 export interface DeserializeOptions {
 	data: any;
 	contentType: string | null | undefined;
@@ -36,7 +38,7 @@ export interface NoBodyMethodOptions {
 	// 不允许取得_active和requestURL, 所以用XMLHttpRequest而不是CustomXMLHttpRequest
 	recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
 	unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
-	headers?: KVObject;
+	headers?: Record<string, string>;
 	mimeType?: keyof MIMEType;
 	username?: string;
 	password?: string;
@@ -64,21 +66,12 @@ export interface AjaxOptions extends BodyMethodOptions {
 interface CustomXMLHttpRequest extends XMLHttpRequest {
 	_id: number;
 	_active: boolean;
-	// 这个是后来加的, 实例化的时候不一定有
-	requestURL?: string;
+	requestURL: string;
 }
 
-export interface MIMEType {
-	json: string;
-	form: string;
-	html: string;
-	xml: string;
-	text: string;
-}
+type PredefinedContentType = 'json' | 'form' | 'html' | 'xml' | 'text';
 
-interface KVObject {
-	[k: string]: any;
-}
+export type MIMEType = Record<PredefinedContentType, string>;
 
 export interface JsonpOptions {
 	url: string;
@@ -93,21 +86,41 @@ export interface JsonpOptions {
 	error?(err: Error, event: string | UIEvent | Event): any;
 }
 
-type XhrEvents = 'onloadstart' | 'onprogress' | 'onabort' | 'onerror' | 'onload' | 'ontimeout' | 'onloadend' | 'onreadystatechange';
+type XhrEvents =
+	| 'onloadstart'
+	| 'onprogress'
+	| 'onabort'
+	| 'onerror'
+	| 'onload'
+	| 'ontimeout'
+	| 'onloadend'
+	| 'onreadystatechange';
 
 type ResponseCategory = 'responseXML' | 'response' | 'responseText';
 
 type Callable = (...args: Array<any>) => any;
 
-export type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
+export type HTTPMethod =
+	| 'GET'
+	| 'POST'
+	| 'HEAD'
+	| 'PUT'
+	| 'PATCH'
+	| 'DELETE'
+	| 'OPTIONS'
+	| 'get'
+	| 'post'
+	| 'head'
+	| 'put'
+	| 'patch'
+	| 'delete'
+	| 'options';
 
 export type Serialize = (options: SerializeOptions) => SerializeResult;
 
 export type Deserialize = (options: DeserializeOptions) => any;
 
-export type XhrEventsObj = {
-	[k in XhrEvents]: Callable
-};
+export type XhrEventsObj = Record<XhrEvents, Callable>;
 
 const isFn = (fn: any): fn is Callable => typeof fn === 'function';
 
@@ -115,9 +128,10 @@ const isJSON = (cType: string): boolean => /application\/json/i.test(cType);
 
 const isForm = (cType: string): boolean => /application\/x-www-form-urlencoded/i.test(cType);
 
-const isStr = (v: any): v is string => v && typeof v === 'string';
+const isNoEmptyStr = (v: any): v is string => v && typeof v === 'string';
 
-const isObj = (o: any): o is KVObject => Object.prototype.toString.call(o) === '[object Object]';
+const isStrOrStrListRecord = (o: any): o is Record<string, string | Array<string>> =>
+	Object.prototype.toString.call(o) === '[object Object]';
 
 const lc = window.location;
 
@@ -148,8 +162,8 @@ const xhrPool: Array<CustomXMLHttpRequest> = [],
 
 let jsonpId = Date.now(),
 	cacheRand = Date.now() + 5,
-	globalSerialize: any = null,
-	globalDeserialize: any = null;
+	globalSerialize: Callable | null = null,
+	globalDeserialize: Callable | null = null;
 
 if (DEBUG) {
 	var xhrId = 0;
@@ -157,9 +171,14 @@ if (DEBUG) {
 
 function createXhr(): CustomXMLHttpRequest {
 	// 不用class继承, 省得编译出来多一个函数
-	const xhr = new XMLHttpRequest();
+	const xhr: CustomXMLHttpRequest = new XMLHttpRequest() as CustomXMLHttpRequest;
 	Object.defineProperty(xhr, '_active', {
 		value: false,
+		writable: true,
+		enumerable: false
+	});
+	Object.defineProperty(xhr, 'requestURL', {
+		value: '',
 		writable: true,
 		enumerable: false
 	});
@@ -170,7 +189,7 @@ function createXhr(): CustomXMLHttpRequest {
 			enumerable: false
 		});
 	}
-	return xhr as CustomXMLHttpRequest;
+	return xhr;
 }
 
 function resetXhr(xhr: CustomXMLHttpRequest): void {
@@ -180,8 +199,8 @@ function resetXhr(xhr: CustomXMLHttpRequest): void {
 	try {
 		xhr.timeout = 0;
 		xhr.requestURL = '';
-	// tslint:disable-next-line
-	} catch (e) { }
+		// tslint:disable-next-line
+	} catch (e) {}
 	events.forEach((v: XhrEvents) => (xhr[v] = null));
 	// 这里不建议给XMLHttpRequestUpload patch一个索引类型, 可能影响到其他地方
 	xhr.upload && events.forEach((v: XhrEvents) => ((xhr.upload as any)[v] = null));
@@ -196,25 +215,28 @@ function xhrFactory(): CustomXMLHttpRequest {
 	return createXhr();
 }
 
-
-function querystring(obj: any): string {
-	if (isObj(obj)) {
+function querystring(obj: Record<string, string | Array<string>>): string {
+	if (isStrOrStrListRecord(obj)) {
 		return Object.keys(obj)
-			.map(
-				(k: string) =>
-					Array.isArray(obj[k])
-						? obj[k]
-							.map((v: any) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-							.join('&')
-						: `${encodeURIComponent(k)}=${encodeURIComponent(obj[k])}`
-			)
+			.map((k: string) => {
+				const value = obj[k];
+				return Array.isArray(value)
+					? value.map((v: string) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')
+					: `${encodeURIComponent(k)}=${encodeURIComponent(value)}`;
+			})
 			.join('&');
 	} else {
 		return JSON.stringify(obj);
 	}
 }
 
-const defaultSerialize: Serialize = ({ data, method, contentType = MIME.json, url, cache }: SerializeOptions): SerializeResult => {
+const defaultSerialize: Serialize = ({
+	data,
+	method,
+	contentType = MIME.json,
+	url,
+	cache
+}: SerializeOptions): SerializeResult => {
 	if (!cache) {
 		// 字符串不可变, 所以这里懒得起名了, 赋值url其实不影响外部
 		// tslint:disable-next-line
@@ -258,9 +280,16 @@ const defaultSerialize: Serialize = ({ data, method, contentType = MIME.json, ur
 	};
 };
 
-const defaultDeserialize: Deserialize = ({ data, contentType, acceptType }: DeserializeOptions): any  => {
+const defaultDeserialize: Deserialize = ({
+	data,
+	contentType,
+	acceptType
+}: DeserializeOptions): any => {
 	let rst = null;
-	if (isStr(data) && (isStr(contentType) && isJSON(contentType) || isJSON(acceptType))) {
+	if (
+		isNoEmptyStr(data) &&
+		((isNoEmptyStr(contentType) && isJSON(contentType)) || isJSON(acceptType))
+	) {
 		try {
 			rst = JSON.parse(data);
 		} catch (e) {
@@ -273,21 +302,18 @@ const defaultDeserialize: Deserialize = ({ data, contentType, acceptType }: Dese
 	return rst;
 };
 
-function setHeaders(xhr: CustomXMLHttpRequest, headers: any): void {
-	if (isObj(headers)) {
-		Object.keys(headers).forEach((k: string) => xhr.setRequestHeader(k, headers[k]));
-	}
+function setHeaders(xhr: CustomXMLHttpRequest, headers: Record<string, string>): void {
+	Object.keys(headers).forEach((k: string) => xhr.setRequestHeader(k, headers[k]));
 }
 
 function setEvents(target: CustomXMLHttpRequest | XMLHttpRequestUpload, evts?: XhrEventsObj): void {
-	if (isObj(evts) && target) {
+	if (isStrOrStrListRecord(evts) && target) {
 		// 不用addEventListener是它不方便reset
 		Object.keys(evts)
 			.filter((k: string): k is XhrEvents => events.includes(k as XhrEvents))
-			.forEach((k: XhrEvents) => (target as XhrEventsObj)[k] = evts[k]);
+			.forEach((k: XhrEvents) => ((target as XhrEventsObj)[k] = evts[k]));
 	}
 }
-
 
 function jsonp(opts: JsonpOptions): void {
 	let {
@@ -304,7 +330,7 @@ function jsonp(opts: JsonpOptions): void {
 	} = opts;
 
 	const hasOriginalCb = callbackName && isFn((window as any)[callbackName]);
-	if (isStr(callbackName) && !hasOriginalCb) {
+	if (isNoEmptyStr(callbackName) && !hasOriginalCb) {
 		throw new Error(`${callbackName} is not a function.`);
 	}
 
@@ -317,11 +343,11 @@ function jsonp(opts: JsonpOptions): void {
 	if (!hasSuccessCb && !hasCompleteCb && !hasOriginalCb) {
 		throw new Error('Must set a success callback or complete callback.');
 	}
-	if (!isStr(url)) {
+	if (!isNoEmptyStr(url)) {
 		throw new TypeError(`url expected a non empty string, but received ${JSON.stringify(url)}.`);
 	}
 
-	const hasCustomCbName = isStr(callbackName),
+	const hasCustomCbName = isNoEmptyStr(callbackName),
 		// hasCustomCbName为true的话, callbackName肯定为非空字符串, 这里去掉空值
 		cbName = hasCustomCbName ? callbackName! : `jsonp${++jsonpId}`,
 		script = document.createElement('script');
@@ -353,7 +379,7 @@ function jsonp(opts: JsonpOptions): void {
 					// 用!那就是JsonpOptions中定义的类型, Callble更关心success是否可以作为函数调用,
 					// 而JsonpOptions中的定义更关心具体参数的类型和个数, 这里我们更关心参数类型,
 					// 所以用!去除空值
-					(success!)(...args);
+					success!(...args);
 				}
 				hasCompleteCb && complete!('success');
 				// 同样, hasOriginalCb为true则callbackName不可能空, 去除空值
@@ -381,7 +407,8 @@ function jsonp(opts: JsonpOptions): void {
 		hasCompleteCb && complete!('error');
 	};
 
-	script.onload = (): ReturnType<typeof setTimeout> => setTimeout(() => document.body.removeChild(script), 3000);
+	script.onload = (): ReturnType<typeof setTimeout> =>
+		setTimeout(() => document.body.removeChild(script), 3000);
 
 	crossorigin && (script.crossOrigin = crossorigin);
 	script.src = url;
@@ -405,7 +432,6 @@ function getResponse(xhr: CustomXMLHttpRequest, key: ResponseCategory): any {
 		return null;
 	}
 }
-
 
 function ajax(opts: AjaxOptions): Abortable {
 	let {
@@ -445,8 +471,8 @@ function ajax(opts: AjaxOptions): Abortable {
 	// 允许所有callback都没有
 
 	// 准备数据
-	if (isStr(reqCtype)) {
-		(MIME as any)[reqCtype] && (reqCtype = MIME[reqCtype as keyof MIMEType]);
+	if (isNoEmptyStr(reqCtype)) {
+		MIME[reqCtype as PredefinedContentType] && (reqCtype = MIME[reqCtype as PredefinedContentType]);
 	} else if (reqCtype) {
 		throw new TypeError(
 			'contentType could be "json", "form", "html", "xml", "text" or other custom string.'
@@ -476,7 +502,7 @@ function ajax(opts: AjaxOptions): Abortable {
 		errCalled = false,
 		completeCalled = false;
 	// 这里不用捕获异常去重置xhr是因为xhr还没激活
-	({ url, data: reqData } = slz({ data: reqRawData, method, contentType: reqCtype, url, cache }));
+	({url, data: reqData} = slz({data: reqRawData, method, contentType: reqCtype, url, cache}));
 
 	// 初始化xhr
 	xhr._active = true;
@@ -486,18 +512,21 @@ function ajax(opts: AjaxOptions): Abortable {
 	// 设置必要的头部
 	if (reqCtype) {
 		xhr.setRequestHeader('Content-Type', reqCtype);
-	} else if (isStr(reqData)) {
+	} else if (isNoEmptyStr(reqData)) {
 		// 不在默认参数设json是为了让FormData之类的能够由浏览器自己设置
 		// 这里只对字符串的body设置默认为json
 		xhr.setRequestHeader('Content-Type', MIME.json);
 	}
-	if (isStr(acceptType)) {
+	if (isNoEmptyStr(acceptType)) {
 		(MIME as any)[acceptType] && (acceptType = MIME[acceptType as keyof MIMEType]);
 		xhr.setRequestHeader('Accept', acceptType);
 	}
-	setHeaders(xhr, headers);
 
-	isStr(mimeType) && xhr.overrideMimeType(mimeType);
+	if (isStrOrStrListRecord(headers)) {
+		setHeaders(xhr, headers);
+	}
+
+	isNoEmptyStr(mimeType) && xhr.overrideMimeType(mimeType);
 
 	// 主要是给progress等事件用, 但存在破坏封装的风险
 	setEvents(xhr, events);
@@ -540,7 +569,10 @@ function ajax(opts: AjaxOptions): Abortable {
 			const resCtype = this.getResponseHeader('Content-Type');
 			// 这里也不用捕获异常, 因为xhr.onloadend会在之后帮我们回收xhr
 			const resData = dslz({
-				data: getResponse(xhr, 'responseXML') || getResponse(xhr, 'response') || getResponse(xhr, 'responseText'),
+				data:
+					getResponse(xhr, 'responseXML') ||
+					getResponse(xhr, 'response') ||
+					getResponse(xhr, 'responseText'),
 				contentType: resCtype,
 				acceptType
 			});
@@ -557,7 +589,11 @@ function ajax(opts: AjaxOptions): Abortable {
 				// 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
 				if (!hasRecoverableErrorCb && !hasCompleteCb) {
 					throw new Error(
-						`Remote server error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`
+						`Remote server error. Request URL: ${
+							(this as CustomXMLHttpRequest).requestURL
+						}, Status code: ${this.status}, message: ${this.statusText}, response: ${
+							this.responseText
+						}.`
 					);
 				}
 				// 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
@@ -567,7 +603,18 @@ function ajax(opts: AjaxOptions): Abortable {
 				// 但是我要加!!!
 				if (hasRecoverableErrorCb) {
 					errCalled = true;
-					recoverableError!(new Error(`Remote server error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
+					recoverableError!(
+						new Error(
+							`Remote server error. Request URL: ${
+								(this as CustomXMLHttpRequest).requestURL
+							}, Status code: ${this.status}, message: ${this.statusText}, response: ${
+								this.responseText
+							}.`
+						),
+						resData,
+						this,
+						e
+					);
 				}
 				if (hasCompleteCb) {
 					completeCalled = true;
@@ -581,10 +628,22 @@ function ajax(opts: AjaxOptions): Abortable {
 	xhr.onerror = function (e: ProgressEvent): void {
 		// 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
 		if (!hasUnrecoverableErrorCb && !hasCompleteCb) {
-			throw new Error(`An error occurred, maybe crossorigin error. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}.`);
+			throw new Error(
+				`An error occurred, maybe crossorigin error. Request URL: ${
+					(this as CustomXMLHttpRequest).requestURL
+				}, Status code: ${this.status}.`
+			);
 		}
 		if (!errCalled && hasUnrecoverableErrorCb) {
-			unrecoverableError!(new Error(`Network error or browser restricted. Request URL: ${(this as CustomXMLHttpRequest).requestURL}, Status code: ${this.status}`), this, e);
+			unrecoverableError!(
+				new Error(
+					`Network error or browser restricted. Request URL: ${
+						(this as CustomXMLHttpRequest).requestURL
+					}, Status code: ${this.status}`
+				),
+				this,
+				e
+			);
 		}
 		if (!completeCalled && hasCompleteCb) {
 			complete!(this, 'error');
@@ -619,7 +678,7 @@ function ajax(opts: AjaxOptions): Abortable {
 	};
 }
 
-export function config({ pool = false, serialize, deserialize }: ConfigOptions = {}): void {
+export function config({pool = false, serialize, deserialize}: ConfigOptions = {}): void {
 	if (pool) {
 		xhrPool.length = 0;
 		let poolSize = typeof pool === 'number' ? pool : 5;
@@ -634,7 +693,7 @@ export function config({ pool = false, serialize, deserialize }: ConfigOptions =
 	isFn(deserialize) && (globalDeserialize = deserialize);
 }
 
-export { ajax, jsonp };
+export {ajax, jsonp};
 
 export function get(url: string, opts: NoBodyMethodOptions): Abortable {
 	return ajax({

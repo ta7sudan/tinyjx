@@ -29,7 +29,7 @@ export interface NoBodyMethodOptions {
     dataType?: string;
     recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
     unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
-    headers?: KVObject;
+    headers?: Record<string, string>;
     mimeType?: keyof MIMEType;
     username?: string;
     password?: string;
@@ -54,18 +54,10 @@ export interface AjaxOptions extends BodyMethodOptions {
 interface CustomXMLHttpRequest extends XMLHttpRequest {
     _id: number;
     _active: boolean;
-    requestURL?: string;
+    requestURL: string;
 }
-export interface MIMEType {
-    json: string;
-    form: string;
-    html: string;
-    xml: string;
-    text: string;
-}
-interface KVObject {
-    [k: string]: any;
-}
+declare type PredefinedContentType = 'json' | 'form' | 'html' | 'xml' | 'text';
+export declare type MIMEType = Record<PredefinedContentType, string>;
 export interface JsonpOptions {
     url: string;
     cache?: boolean;
@@ -81,9 +73,7 @@ declare type Callable = (...args: Array<any>) => any;
 export declare type HTTPMethod = 'GET' | 'POST' | 'HEAD' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'get' | 'post' | 'head' | 'put' | 'patch' | 'delete' | 'options';
 export declare type Serialize = (options: SerializeOptions) => SerializeResult;
 export declare type Deserialize = (options: DeserializeOptions) => any;
-export declare type XhrEventsObj = {
-    [k in XhrEvents]: Callable;
-};
+export declare type XhrEventsObj = Record<XhrEvents, Callable>;
 declare function jsonp(opts: JsonpOptions): void;
 declare function ajax(opts: AjaxOptions): Abortable;
 export declare function config({ pool, serialize, deserialize }?: ConfigOptions): void;
