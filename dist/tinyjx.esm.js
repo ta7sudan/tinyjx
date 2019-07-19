@@ -4,9 +4,9 @@ const isJSON = cType => /application\/json/i.test(cType);
 
 const isForm = cType => /application\/x-www-form-urlencoded/i.test(cType);
 
-const isStr = v => v && typeof v === 'string';
+const isNoEmptyStr = v => v && typeof v === 'string';
 
-const isObj = o => Object.prototype.toString.call(o) === '[object Object]';
+const isStrOrStrListRecord = o => Object.prototype.toString.call(o) === '[object Object]';
 
 const lc = window.location;
 const xhrPool = [],
@@ -34,6 +34,11 @@ function createXhr() {
   const xhr = new XMLHttpRequest();
   Object.defineProperty(xhr, '_active', {
     value: false,
+    writable: true,
+    enumerable: false
+  });
+  Object.defineProperty(xhr, 'requestURL', {
+    value: '',
     writable: true,
     enumerable: false
   });
@@ -66,8 +71,11 @@ function xhrFactory() {
 }
 
 function querystring(obj) {
-  if (isObj(obj)) {
-    return Object.keys(obj).map(k => Array.isArray(obj[k]) ? obj[k].map(v => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&') : `${encodeURIComponent(k)}=${encodeURIComponent(obj[k])}`).join('&');
+  if (isStrOrStrListRecord(obj)) {
+    return Object.keys(obj).map(k => {
+      const value = obj[k];
+      return Array.isArray(value) ? value.map(v => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&') : `${encodeURIComponent(k)}=${encodeURIComponent(value)}`;
+    }).join('&');
   } else {
     return JSON.stringify(obj);
   }
@@ -126,7 +134,7 @@ const defaultDeserialize = ({
 }) => {
   let rst = null;
 
-  if (isStr(data) && (isStr(contentType) && isJSON(contentType) || isJSON(acceptType))) {
+  if (isNoEmptyStr(data) && (isNoEmptyStr(contentType) && isJSON(contentType) || isJSON(acceptType))) {
     try {
       rst = JSON.parse(data);
     } catch (e) {
@@ -141,13 +149,11 @@ const defaultDeserialize = ({
 };
 
 function setHeaders(xhr, headers) {
-  if (isObj(headers)) {
-    Object.keys(headers).forEach(k => xhr.setRequestHeader(k, headers[k]));
-  }
+  Object.keys(headers).forEach(k => xhr.setRequestHeader(k, headers[k]));
 }
 
 function setEvents(target, evts) {
-  if (isObj(evts) && target) {
+  if (isStrOrStrListRecord(evts) && target) {
     // 不用addEventListener是它不方便reset
     Object.keys(evts).filter(k => events.indexOf(k) !== -1).forEach(k => target[k] = evts[k]);
   }
@@ -170,7 +176,7 @@ function jsonp(opts) {
   } = opts;
   const hasOriginalCb = callbackName && isFn(window[callbackName]);
 
-  if (isStr(callbackName) && !hasOriginalCb) {
+  if (isNoEmptyStr(callbackName) && !hasOriginalCb) {
     throw new Error(`${callbackName} is not a function.`);
   }
 
@@ -184,11 +190,11 @@ function jsonp(opts) {
     throw new Error('Must set a success callback or complete callback.');
   }
 
-  if (!isStr(url)) {
+  if (!isNoEmptyStr(url)) {
     throw new TypeError(`url expected a non empty string, but received ${JSON.stringify(url)}.`);
   }
 
-  const hasCustomCbName = isStr(callbackName),
+  const hasCustomCbName = isNoEmptyStr(callbackName),
         // hasCustomCbName为true的话, callbackName肯定为非空字符串, 这里去掉空值
   cbName = hasCustomCbName ? callbackName : `jsonp${++jsonpId}`,
         script = document.createElement('script');
@@ -319,7 +325,7 @@ function ajax(opts) {
   // 准备数据
 
 
-  if (isStr(reqCtype)) {
+  if (isNoEmptyStr(reqCtype)) {
     MIME[reqCtype] && (reqCtype = MIME[reqCtype]);
   } else if (reqCtype) {
     throw new TypeError('contentType could be "json", "form", "html", "xml", "text" or other custom string.');
@@ -356,19 +362,22 @@ function ajax(opts) {
 
   if (reqCtype) {
     xhr.setRequestHeader('Content-Type', reqCtype);
-  } else if (isStr(reqData)) {
+  } else if (isNoEmptyStr(reqData)) {
     // 不在默认参数设json是为了让FormData之类的能够由浏览器自己设置
     // 这里只对字符串的body设置默认为json
     xhr.setRequestHeader('Content-Type', MIME.json);
   }
 
-  if (isStr(acceptType)) {
+  if (isNoEmptyStr(acceptType)) {
     MIME[acceptType] && (acceptType = MIME[acceptType]);
     xhr.setRequestHeader('Accept', acceptType);
   }
 
-  setHeaders(xhr, headers);
-  isStr(mimeType) && xhr.overrideMimeType(mimeType); // 主要是给progress等事件用, 但存在破坏封装的风险
+  if (isStrOrStrListRecord(headers)) {
+    setHeaders(xhr, headers);
+  }
+
+  isNoEmptyStr(mimeType) && xhr.overrideMimeType(mimeType); // 主要是给progress等事件用, 但存在破坏封装的风险
 
   setEvents(xhr, events);
   setEvents(xhr.upload, uploadEvents);
