@@ -84,6 +84,7 @@ function querystring(obj) {
 const defaultSerialize = ({
   data,
   method,
+  processData,
   contentType = MIME.json,
   url,
   cache
@@ -95,6 +96,11 @@ const defaultSerialize = ({
   }
 
   if (method === 'GET' || method === 'HEAD') {
+    if (processData) {
+      // tslint:disable-next-line
+      url += ~url.indexOf('?') ? `&${querystring(data)}` : `?${querystring(data)}`;
+    }
+
     return {
       url,
       data
@@ -294,6 +300,7 @@ function ajax(opts) {
     dataType: acceptType = 'json',
 
     /* tslint:disable */
+    processData = true,
     data: reqRawData,
     beforeSend,
     complete,
@@ -351,6 +358,7 @@ function ajax(opts) {
   } = slz({
     data: reqRawData,
     method,
+    processData,
     contentType: reqCtype,
     url,
     cache

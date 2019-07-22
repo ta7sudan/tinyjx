@@ -90,6 +90,7 @@
 	const defaultSerialize = ({
 	  data,
 	  method,
+	  processData,
 	  contentType = MIME.json,
 	  url,
 	  cache
@@ -101,6 +102,11 @@
 	  }
 
 	  if (method === 'GET' || method === 'HEAD') {
+	    if (processData) {
+	      // tslint:disable-next-line
+	      url += ~url.indexOf('?') ? `&${querystring(data)}` : `?${querystring(data)}`;
+	    }
+
 	    return {
 	      url,
 	      data
@@ -300,6 +306,7 @@
 	    dataType: acceptType = 'json',
 
 	    /* tslint:disable */
+	    processData = true,
 	    data: reqRawData,
 	    beforeSend,
 	    complete,
@@ -357,6 +364,7 @@
 	  } = slz({
 	    data: reqRawData,
 	    method,
+	    processData,
 	    contentType: reqCtype,
 	    url,
 	    cache

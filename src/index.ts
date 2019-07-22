@@ -8,6 +8,7 @@ export interface Abortable {
 export interface SerializeOptions {
 	data: any;
 	method: HTTPMethod;
+	processData: boolean;
 	contentType?: string;
 	url: string;
 	cache: boolean;
@@ -35,6 +36,7 @@ export interface NoBodyMethodOptions {
 	beforeSend?(xhr: CustomXMLHttpRequest, options: AjaxOptions): boolean | void;
 	complete?(xhr: XMLHttpRequest, status: string): any;
 	dataType?: string;
+	processData?: boolean;
 	// 不允许取得_active和requestURL, 所以用XMLHttpRequest而不是CustomXMLHttpRequest
 	recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
 	unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
@@ -233,6 +235,7 @@ function querystring(obj: Record<string, string | Array<string>>): string {
 const defaultSerialize: Serialize = ({
 	data,
 	method,
+	processData,
 	contentType = MIME.json,
 	url,
 	cache
@@ -243,6 +246,10 @@ const defaultSerialize: Serialize = ({
 		url += ~url.indexOf('?') ? `&_=${++cacheRand}` : `?_=${++cacheRand}`;
 	}
 	if (method === 'GET' || method === 'HEAD') {
+		if (processData) {
+			// tslint:disable-next-line
+			url += ~url.indexOf('?') ? `&${querystring(data)}` : `?${querystring(data)}`;
+		}
 		return {
 			url,
 			data
@@ -440,6 +447,7 @@ function ajax(opts: AjaxOptions): Abortable {
 		contentType: reqCtype,
 		dataType: acceptType = 'json',
 		/* tslint:disable */
+		processData = true,
 		data: reqRawData,
 		beforeSend,
 		complete,
@@ -502,7 +510,7 @@ function ajax(opts: AjaxOptions): Abortable {
 		errCalled = false,
 		completeCalled = false;
 	// 这里不用捕获异常去重置xhr是因为xhr还没激活
-	({url, data: reqData} = slz({data: reqRawData, method, contentType: reqCtype, url, cache}));
+	({url, data: reqData} = slz({data: reqRawData, method, processData, contentType: reqCtype, url, cache}));
 
 	// 初始化xhr
 	xhr._active = true;
