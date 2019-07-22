@@ -4,6 +4,7 @@ export interface Abortable {
 export interface SerializeOptions {
     data: any;
     method: HTTPMethod;
+    processData: boolean;
     contentType?: string;
     url: string;
     cache: boolean;
@@ -27,6 +28,7 @@ export interface NoBodyMethodOptions {
     beforeSend?(xhr: CustomXMLHttpRequest, options: AjaxOptions): boolean | void;
     complete?(xhr: XMLHttpRequest, status: string): any;
     dataType?: string;
+    processData?: boolean;
     recoverableError?(err: Error, resData: any, xhr: XMLHttpRequest, event: UIEvent | Event): any;
     unrecoverableError?(err: Error, xhr: XMLHttpRequest, event: UIEvent | Event): any;
     headers?: Record<string, string>;
