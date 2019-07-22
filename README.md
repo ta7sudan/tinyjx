@@ -21,7 +21,7 @@ tinyjx is a tiny http client for browser.
 ## Install
 
 ```shell
-$ npm i -P tinyjx@next
+$ npm i -P tinyjx
 ```
 
 
@@ -64,6 +64,8 @@ Returns a `Abortable` object which implemented a `abort()` method like `xhr.abor
 * `contentType`: `<string>`, MIME type for request body, also support predefined value `json`, `form`,  `html`, `xml`, `text`, which are `application/json`, `application/x-www-form-urlencoded`, `text/html`, `application/xml`, `text/plain`, default `json`
 
 * `dataType`: `<string>`, MIME type expect from the remote server, will be treat as `Accept`, default `json`
+
+* `processData`: `<boolean>`, like jQuery, default is `true`
 
 * `headers`: request headers, which is a key-value object. eg. `{'Content-Type': 'text/plain'}`
 
