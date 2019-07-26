@@ -441,7 +441,7 @@ function ajax(opts) {
       } else if (this.status !== 0) {
         // 这类错误xhr.onerror和window.onerror都不捕获所以手动抛一个
         if (!hasRecoverableErrorCb && !hasCompleteCb) {
-          throw new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`);
+          throw new Error(`Remote server error. Request URL: ${this.requestURL}, Method: ${method}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`);
         } // 理论上来讲好像没必要再注册xhr.onerror了, 因为如果有error那status必然为0
         // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/status
         // 但是不加个心里不踏实...总感觉会不会有浏览器没按规范实现
@@ -451,7 +451,7 @@ function ajax(opts) {
 
         if (hasRecoverableErrorCb) {
           errCalled = true;
-          recoverableError(new Error(`Remote server error. Request URL: ${this.requestURL}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
+          recoverableError(new Error(`Remote server error. Request URL: ${this.requestURL}, Method: ${method}, Status code: ${this.status}, message: ${this.statusText}, response: ${this.responseText}.`), resData, this, e);
         }
 
         if (hasCompleteCb) {
@@ -466,11 +466,11 @@ function ajax(opts) {
   xhr.onerror = function (e) {
     // 跨域错误会在这里捕获, 但是window.onerror不捕获, 所以也手动抛一个
     if (!hasUnrecoverableErrorCb && !hasCompleteCb) {
-      throw new Error(`An error occurred, maybe crossorigin error. Request URL: ${this.requestURL}, Status code: ${this.status}.`);
+      throw new Error(`An error occurred, maybe crossorigin error. Request URL: ${this.requestURL}, Method: ${method}, Status code: ${this.status}.`);
     }
 
     if (!errCalled && hasUnrecoverableErrorCb) {
-      unrecoverableError(new Error(`Network error or browser restricted. Request URL: ${this.requestURL}, Status code: ${this.status}`), this, e);
+      unrecoverableError(new Error(`Network error or browser restricted. Request URL: ${this.requestURL}, Method: ${method}, Status code: ${this.status}`), this, e);
     }
 
     if (!completeCalled && hasCompleteCb) {

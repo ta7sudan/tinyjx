@@ -599,7 +599,7 @@ function ajax(opts: AjaxOptions): Abortable {
 					throw new Error(
 						`Remote server error. Request URL: ${
 							(this as CustomXMLHttpRequest).requestURL
-						}, Status code: ${this.status}, message: ${this.statusText}, response: ${
+						}, Method: ${method}, Status code: ${this.status}, message: ${this.statusText}, response: ${
 							this.responseText
 						}.`
 					);
@@ -615,7 +615,7 @@ function ajax(opts: AjaxOptions): Abortable {
 						new Error(
 							`Remote server error. Request URL: ${
 								(this as CustomXMLHttpRequest).requestURL
-							}, Status code: ${this.status}, message: ${this.statusText}, response: ${
+							}, Method: ${method}, Status code: ${this.status}, message: ${this.statusText}, response: ${
 								this.responseText
 							}.`
 						),
@@ -639,7 +639,7 @@ function ajax(opts: AjaxOptions): Abortable {
 			throw new Error(
 				`An error occurred, maybe crossorigin error. Request URL: ${
 					(this as CustomXMLHttpRequest).requestURL
-				}, Status code: ${this.status}.`
+				}, Method: ${method}, Status code: ${this.status}.`
 			);
 		}
 		if (!errCalled && hasUnrecoverableErrorCb) {
@@ -647,7 +647,7 @@ function ajax(opts: AjaxOptions): Abortable {
 				new Error(
 					`Network error or browser restricted. Request URL: ${
 						(this as CustomXMLHttpRequest).requestURL
-					}, Status code: ${this.status}`
+					}, Method: ${method}, Status code: ${this.status}`
 				),
 				this,
 				e
