@@ -453,7 +453,7 @@ function ajax(opts: AjaxOptions): Abortable {
 		complete,
 		recoverableError,
 		unrecoverableError,
-		headers,
+		headers = {},
 		mimeType,
 		responseType = '' as XMLHttpRequestResponseType,
 		username,
@@ -663,6 +663,9 @@ function ajax(opts: AjaxOptions): Abortable {
 		setTimeout(() => {
 			let rst;
 			try {
+				// TODO 这里虽然传递了options, 设计上讲应当是允许修改options并影响后续行为
+				// 但是实际上在beforeSend里面修改options并不会产生什么影响, 因为根据options进行
+				// 配置的操作在前面就已经完成了
 				rst = beforeSend!(xhr, opts);
 			} catch (e) {
 				// 恶心之处就在于每个用户定义的callback都可能触发异常, 然而我还要回收xhr
