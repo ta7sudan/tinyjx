@@ -371,6 +371,7 @@ function ajax(opts) {
   if (reqCtype) {
     xhr.setRequestHeader('Content-Type', reqCtype);
   } else if (isNoEmptyStr(reqData)) {
+    // 注意这里破坏了默认post是简单请求的行为
     // 不在默认参数设json是为了让FormData之类的能够由浏览器自己设置
     // 这里只对字符串的body设置默认为json
     xhr.setRequestHeader('Content-Type', MIME.json);
